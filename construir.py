@@ -11,7 +11,7 @@ Por agora só o 8.º ano, Isometrias (/8/isometrias/):
     e «Abrir a apresentação» nesse tema. index.html#parte-NN abre logo essa parte.
 
     ~/Davinci/CODE/.venv/bin/python3 construir.py                 (refaz as páginas de entrada)
-    ~/Davinci/CODE/.venv/bin/python3 construir.py --copiar        (copia antes a apresentação do 8.º)
+    ~/Davinci/CODE/.venv/bin/python3 construir.py --copiar        (copia antes a apresentação do 8.º; a cópia do site leva os botões «Todos os temas» e «▶ Vídeo deste tema»)
     ~/Davinci/CODE/.venv/bin/python3 construir.py --video 04 <ficheiro.mp4>   (põe o vídeo da parte 04)
 Depois: git add -A && git commit && git push (o GitHub Pages publica em ~1 min).
 Vídeos: só depois do OK do Miguel a cada um; máx. 100 MB por ficheiro (limite do GitHub).
@@ -172,10 +172,72 @@ def pagina_raiz():
 """
 
 
+def videos_iso():
+    """Partes com vídeo publicado: {NN: duração}."""
+    out = {}
+    for nn, *_ in PARTES_ISO:
+        mp4 = os.path.join(ISO, 'videos', f'parte_{nn}.mp4')
+        if os.path.exists(mp4):
+            out[nn] = duracao(mp4)
+    return out
+
+
+INI, FIM = '<!--SITE-VIDEOS-->', '<!--/SITE-VIDEOS-->'
+
+
+def botoes_apresentacao(vid):
+    """Botões por cima da apresentação (SÓ na cópia do site; a do projetor e as gravações ficam como estão):
+    à esquerda «Todos os temas» (página de entrada); à direita «▶ Vídeo deste tema · duração», só nos temas com vídeo."""
+    import json
+    return INI + """
+<style>
+.sv-bar { position:fixed; top:10px; left:10px; right:10px; display:flex; justify-content:space-between; gap:8px; z-index:2147483000; pointer-events:none; }
+.sv-bt { pointer-events:auto; font:600 15px/1.2 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; text-decoration:none; color:#fff; background:#194178; border-radius:999px; padding:8px 14px; box-shadow:0 2px 8px rgba(0,0,0,.18); white-space:nowrap; }
+.sv-bt.sv-claro { color:#194178; background:rgba(255,255,255,.92); border:1px solid #194178; }
+.sv-bt[hidden] { display:none !important; }
+.sv-curto { display:none; }
+@media (max-width:560px) { .sv-bt { font-size:13px; padding:7px 11px; } .sv-longo { display:none; } .sv-curto { display:inline; } }
+@media print { .sv-bar { display:none; } }
+</style>
+<div class="sv-bar"><a class="sv-bt sv-claro" href="index.html">☰ <span class="sv-longo">Todos os temas</span><span class="sv-curto">Temas</span></a><a class="sv-bt" id="sv-video" hidden></a></div>
+<script>
+(function () {
+  const VID = %s;
+  const b = document.getElementById('sv-video');
+  function parte(id) {
+    if (/^(em|ra)-/.test(id)) return '13';
+    const m = /^t(\\d+)-/.exec(id || ''); if (!m) return null;
+    const t = +m[1]; return t <= 3 ? '01' : String(t).padStart(2, '0');
+  }
+  let ultimo;
+  function ver() {
+    const E = window.Apresentacao && window.Apresentacao._E; if (!E || !E.dias) return;
+    const p = parte(E.dias[E.i] && E.dias[E.i].id);
+    if (p === ultimo) return; ultimo = p;
+    if (p && VID[p]) { b.href = 'index.html#parte-' + p; b.innerHTML = '▶ <span class="sv-longo">Vídeo deste tema</span><span class="sv-curto">Vídeo</span> · ' + VID[p]; b.hidden = false; }
+    else b.hidden = true;
+  }
+  document.querySelectorAll('.sv-bt').forEach(a => ['pointerdown', 'mousedown', 'click', 'keydown'].forEach(ev =>
+    a.addEventListener(ev, e => e.stopPropagation())));
+  setInterval(ver, 300); ver();
+})();
+</script>
+""" % json.dumps(vid, ensure_ascii=False) + FIM
+
+
+def apresentacao_iso(copiar):
+    dest = os.path.join(ISO, 'apresentacao.html')
+    s = open(APRES_8 if copiar else dest, encoding='utf-8').read()
+    if INI in s:
+        s = s[:s.index(INI)] + s[s.index(FIM) + len(FIM):]
+    assert s.count('</body>') == 1
+    s = s.replace('</body>', botoes_apresentacao(videos_iso()) + '\n</body>')
+    open(dest, 'w', encoding='utf-8').write(s)
+
+
 def main(args):
     if '--copiar' in args:
-        shutil.copyfile(APRES_8, os.path.join(ISO, 'apresentacao.html'))
-        print('Apresentação copiada.')
+        print('Apresentação copiada da do projetor.')
     if '--video' in args:
         i = args.index('--video')
         nn, origem = args[i + 1], args[i + 2]
@@ -184,6 +246,7 @@ def main(args):
         assert mb < 95, f'{mb:.0f} MB: o GitHub recusa ficheiros com mais de 100 MB'
         shutil.copyfile(origem, os.path.join(ISO, 'videos', f'parte_{nn}.mp4'))
         print(f'Vídeo da parte {nn} posto ({mb:.1f} MB).')
+    apresentacao_iso('--copiar' in args)
     with open(os.path.join(ISO, 'index.html'), 'w', encoding='utf-8') as f:
         f.write(pagina_iso())
     with open(os.path.join(AQUI, 'index.html'), 'w', encoding='utf-8') as f:
