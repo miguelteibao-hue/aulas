@@ -297,6 +297,13 @@ def botoes_apresentacao(vid):
 .sv-curto { display:none; }
 @media (max-width:560px) { .sv-bt { font-size:13px; padding:7px 11px; } .sv-longo { display:none; } .sv-curto { display:inline; } }
 body.vert #palco { --topo-vert: 130px; } /* apresentação na vertical (telemóvel em pé): o cabeçalho desce para a .sv-bar não o tapar */
+/* Tela deitada (telemóvel deitado e computador): a apresentação desce para a barra ter faixa própria e não tapar o cabeçalho */
+body:not(.vert) #app { top:52px; }
+@media (orientation:landscape) and (max-height:500px) {
+  body:not(.vert) #app { top:36px; }
+  body:not(.vert) .sv-bar { top:4px; }
+  body:not(.vert) .sv-bt { font-size:12px; padding:5px 10px; }
+}
 @media print { .sv-bar { display:none; } }
 </style>
 <div class="sv-bar"><a class="sv-bt sv-claro" href="index.html">☰ <span class="sv-longo">Todos os temas</span><span class="sv-curto">Temas</span></a><a class="sv-bt" id="sv-video" hidden></a></div>
