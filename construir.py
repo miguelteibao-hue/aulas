@@ -13,6 +13,8 @@ Por agora só o 8.º ano, Isometrias (/8/isometrias/):
     ~/Davinci/CODE/.venv/bin/python3 construir.py                 (refaz as páginas de entrada)
     ~/Davinci/CODE/.venv/bin/python3 construir.py --copiar        (copia antes a apresentação do 8.º; a cópia do site leva os botões «Todos os temas» e «▶ Vídeo deste tema»)
     ~/Davinci/CODE/.venv/bin/python3 construir.py --video 04 <ficheiro.mp4>   (põe o vídeo da parte 04)
+    ~/Davinci/CODE/.venv/bin/python3 construir.py --video-vertical 04 <ficheiro.mp4>   (versão vertical: no telemóvel
+        a página pergunta «Vertical / Horizontal» antes de tocar; no computador toca sempre o horizontal)
 Depois: git add -A && git commit && git push (o GitHub Pages publica em ~1 min).
 Vídeos: só depois do OK do Miguel a cada um; máx. 100 MB por ficheiro (limite do GitHub).
 """
@@ -65,6 +67,20 @@ h1 { font-size:1.6rem; margin:.2rem 0 .1rem; }
 .bt[disabled] { opacity:.4; cursor:default; }
 footer { color:var(--suave); font-size:.9rem; margin-top:2rem; }
 @media (max-width:560px) { .parte { flex-wrap:wrap; } .acoes { width:100%; justify-content:flex-start; padding-left:3.2rem; } }
+/* Pergunta «vertical ou horizontal» e leitor vertical em ecrã inteiro */
+.escolha { position:fixed; inset:0; z-index:50; background:rgba(10,14,22,.55); display:grid; place-items:center; padding:16px; }
+.esc-caixa { background:var(--cartao); color:var(--texto); border-radius:16px; padding:20px 18px 16px; width:min(360px,100%); display:grid; gap:10px; text-align:center; box-shadow:0 10px 40px rgba(0,0,0,.3); }
+.esc-caixa b { font-size:1.15rem; }
+.esc-caixa small { color:var(--suave); }
+.esc-ops { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:6px 0 4px; }
+.esc-op { display:grid; justify-items:center; gap:8px; padding:16px 8px 12px; border:2px solid var(--acento); border-radius:14px; background:var(--acento2); color:var(--acento); font:inherit; font-weight:700; cursor:pointer; }
+.esc-op svg { height:64px; width:64px; fill:none; stroke:currentColor; stroke-width:3.5; stroke-linecap:round; }
+.telav { position:fixed; inset:0; z-index:40; background:#000; display:flex; flex-direction:column; }
+.telav video { flex:1; min-height:0; width:100%; object-fit:contain; background:#000; }
+.telav-barra { display:flex; align-items:center; gap:8px; padding:8px 10px calc(8px + env(safe-area-inset-bottom)); background:#000; color:#fff; }
+.telav-barra b { flex:1; font-size:.9rem; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.telav-barra .bt { padding:6px 12px; }
+body.com-telav { overflow:hidden; }
 /* Vertical (telemóvel): o vídeo fica preso no topo enquanto se percorre a lista */
 .palco:not([hidden]) { position:sticky; top:0; z-index:5; background:var(--fundo); padding-top:8px; }
 .palco .agora { margin:0 0 .8rem; }
@@ -122,7 +138,8 @@ def pagina_iso():
         tem_video = os.path.exists(mp4)
         dur = duracao(mp4) if tem_video else ''
         if tem_video:
-            dados.append('{n:"%s",t:"%s"}' % (nn, esc(f'{titulo} · {dur}')))
+            tem_v = os.path.exists(os.path.join(ISO, 'videos', f'parte_{nn}_v.mp4'))
+            dados.append('{n:"%s",t:"%s",v:%s}' % (nn, esc(f'{titulo} · {dur}'), 'true' if tem_v else 'false'))
         bot_video = (f'<button class="bt cheio" data-parte="{nn}">▶ Ver o vídeo · {dur}</button>' if tem_video else '')
         linhas.append(
             f'<li class="parte" id="parte-{nn}"><span class="num">{int(nn) if nn != "01" else "1–3"}</span>'
@@ -133,7 +150,22 @@ def pagina_iso():
 <section class="palco" id="palco" hidden>
 <div class="leitor"><video id="video" controls playsinline preload="metadata"></video></div>
 <div class="agora"><b id="titulo"></b><span><button class="bt" id="ant">◀ Anterior</button> <button class="bt" id="seg">Seguinte ▶</button></span></div>
-</section>"""
+</section>
+<div class="escolha" id="escolha" hidden role="dialog" aria-modal="true" aria-labelledby="esc-tit">
+ <div class="esc-caixa">
+  <b id="esc-tit">Como queres ver o vídeo?</b>
+  <small id="esc-parte"></small>
+  <div class="esc-ops">
+   <button type="button" class="esc-op" data-modo="v"><svg viewBox="0 0 40 64" aria-hidden="true"><rect x="3" y="2" width="34" height="60" rx="6"/><line x1="15" y1="55" x2="25" y2="55"/></svg>Vertical</button>
+   <button type="button" class="esc-op" data-modo="h"><svg viewBox="0 0 64 40" aria-hidden="true"><rect x="2" y="3" width="60" height="34" rx="6"/><line x1="55" y1="15" x2="55" y2="25"/></svg>Horizontal</button>
+  </div>
+  <button type="button" class="bt" id="esc-nao">Cancelar</button>
+ </div>
+</div>
+<div class="telav" id="telav" hidden>
+ <video id="videov" controls playsinline preload="metadata"></video>
+ <div class="telav-barra"><button type="button" class="bt cheio" id="antv">◀</button><b id="titulov"></b><button type="button" class="bt cheio" id="segv">▶</button><button type="button" class="bt cheio" id="fecharv" aria-label="Fechar">✕</button></div>
+</div>"""
     script = '' if not dados else """
 <script>
 const P = [%s];
@@ -151,7 +183,35 @@ function abrir(i, tocar) {
   try { history.replaceState(null, '', '#parte-' + P[i].n); } catch (e) {}
   if (tocar) { v.play().catch(() => {}); if (!matchMedia('(orientation:landscape) and (min-width:700px)').matches) window.scrollTo({ top: 0, behavior: 'smooth' }); }
 }
-document.querySelectorAll('[data-parte]').forEach(b => b.addEventListener('click', () => abrir(P.findIndex(p => p.n === b.dataset.parte), true)));
+/* Vídeo vertical: no telemóvel, se a parte tiver versão vertical, pergunta antes de tocar; no computador é sempre horizontal */
+const vv = document.getElementById('videov'), telav = document.getElementById('telav'), esc = document.getElementById('escolha');
+let atualV = -1, pedido = -1;
+function telemovel() { return matchMedia('(pointer:coarse)').matches && Math.min(screen.width, screen.height) < 600; }
+function vizV(i, d) { for (let k = i + d; k >= 0 && k < P.length; k += d) if (P[k].v) return k; return -1; }
+function abrirV(i, tocar) {
+  atualV = i; telav.hidden = false; document.body.classList.add('com-telav');
+  v.pause(); vv.src = 'videos/parte_' + P[i].n + '_v.mp4';
+  document.getElementById('titulov').textContent = P[i].t;
+  document.getElementById('antv').disabled = vizV(i, -1) < 0;
+  document.getElementById('segv').disabled = vizV(i, 1) < 0;
+  document.querySelectorAll('.parte').forEach(el => el.classList.toggle('sel', el.id === 'parte-' + P[i].n));
+  try { history.replaceState(null, '', '#parte-' + P[i].n); } catch (e) {}
+  if (tocar) vv.play().catch(() => {});
+}
+function fecharV() { vv.pause(); telav.hidden = true; document.body.classList.remove('com-telav'); if (atualV >= 0) abrir(atualV, false); }
+document.getElementById('antv').onclick = () => { const k = vizV(atualV, -1); if (k >= 0) abrirV(k, true); };
+document.getElementById('segv').onclick = () => { const k = vizV(atualV, 1); if (k >= 0) abrirV(k, true); };
+document.getElementById('fecharv').onclick = fecharV;
+vv.addEventListener('ended', () => { const k = vizV(atualV, 1); if (k >= 0) abrirV(k, false); });
+function pedir(i) {
+  if (i < 0) return;
+  if (P[i].v && telemovel()) { pedido = i; document.getElementById('esc-parte').textContent = P[i].t; esc.hidden = false; }
+  else abrir(i, true);
+}
+esc.querySelectorAll('.esc-op').forEach(b => b.addEventListener('click', () => { esc.hidden = true; if (b.dataset.modo === 'v') abrirV(pedido, true); else abrir(pedido, true); }));
+document.getElementById('esc-nao').onclick = () => { esc.hidden = true; };
+esc.addEventListener('click', e => { if (e.target === esc) esc.hidden = true; });
+document.querySelectorAll('[data-parte]').forEach(b => b.addEventListener('click', () => pedir(P.findIndex(p => p.n === b.dataset.parte))));
 document.getElementById('ant').onclick = () => abrir(atual - 1, true);
 document.getElementById('seg').onclick = () => abrir(atual + 1, true);
 v.addEventListener('ended', () => { if (atual < P.length - 1) abrir(atual + 1, false); });
@@ -295,6 +355,15 @@ def main(args):
         assert mb < 95, f'{mb:.0f} MB: o GitHub recusa ficheiros com mais de 100 MB'
         shutil.copyfile(origem, os.path.join(ISO, 'videos', f'parte_{nn}.mp4'))
         print(f'Vídeo da parte {nn} posto ({mb:.1f} MB).')
+    if '--video-vertical' in args:
+        i = args.index('--video-vertical')
+        nn, origem = args[i + 1], args[i + 2]
+        assert nn in [p[0] for p in PARTES_ISO], f'parte desconhecida: {nn}'
+        assert os.path.exists(os.path.join(ISO, 'videos', f'parte_{nn}.mp4')), 'publicar primeiro o vídeo horizontal desta parte'
+        mb = os.path.getsize(origem) / 1e6
+        assert mb < 95, f'{mb:.0f} MB: o GitHub recusa ficheiros com mais de 100 MB'
+        shutil.copyfile(origem, os.path.join(ISO, 'videos', f'parte_{nn}_v.mp4'))
+        print(f'Vídeo VERTICAL da parte {nn} posto ({mb:.1f} MB).')
     apresentacao_iso('--copiar' in args)
     with open(os.path.join(ISO, 'index.html'), 'w', encoding='utf-8') as f:
         f.write(pagina_iso())
