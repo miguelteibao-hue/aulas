@@ -65,6 +65,40 @@ h1 { font-size:1.6rem; margin:.2rem 0 .1rem; }
 .bt[disabled] { opacity:.4; cursor:default; }
 footer { color:var(--suave); font-size:.9rem; margin-top:2rem; }
 @media (max-width:560px) { .parte { flex-wrap:wrap; } .acoes { width:100%; justify-content:flex-start; padding-left:3.2rem; } }
+/* Vertical (telemóvel): o vídeo fica preso no topo enquanto se percorre a lista */
+.palco:not([hidden]) { position:sticky; top:0; z-index:5; background:var(--fundo); padding-top:8px; }
+.palco .agora { margin:0 0 .8rem; }
+/* Horizontal (telemóvel deitado e computador): vídeo à esquerda, capítulos à direita */
+@media (orientation:landscape) and (min-width:700px) {
+  main { max-width:1500px; }
+  .grelha { display:grid; grid-template-columns:minmax(0,1fr) minmax(300px,380px); gap:20px; align-items:start; }
+  .palco:not([hidden]) { position:sticky; top:12px; padding-top:0; }
+  .leitor video { max-height:calc(100vh - 150px); }
+  .partes { max-height:calc(100vh - 40px); overflow-y:auto; padding:2px 4px 2px 2px; position:sticky; top:12px; }
+  .parte { flex-wrap:wrap; }
+  .acoes { width:100%; justify-content:flex-start; padding-left:3.2rem; }
+  .grelha.sem-video { display:block; }
+}
+/* Telemóvel deitado (pouca altura): tudo mais compacto para o vídeo caber */
+@media (orientation:landscape) and (max-height:520px) {
+  body { font-size:15px; }
+  main { padding:8px 12px 16px; }
+  h1 { font-size:1.15rem; display:inline; margin-right:.5rem; }
+  .sub { display:inline; font-size:.85rem; }
+  .cabeca { margin-bottom:6px; }
+  .leitor { border-radius:8px; margin-bottom:.3rem; }
+  .leitor video { max-height:calc(100vh - 70px); }
+  .palco .agora { margin:0; }
+  .agora b { font-size:.9rem; }
+  .bt { padding:5px 10px; font-size:.85rem; }
+  .grelha { grid-template-columns:minmax(0,1fr) 260px; gap:12px; }
+  .partes { max-height:calc(100vh - 16px); top:8px; gap:6px; }
+  .acoes { padding-left:0; }
+  .parte { padding:8px 10px; gap:8px; }
+  .num { width:1.8rem; height:1.8rem; font-size:.85rem; }
+  .acoes { padding-left:2.6rem; }
+  footer { display:none; }
+}
 """
 
 
@@ -96,8 +130,10 @@ def pagina_iso():
             f'<span class="acoes">{bot_video}'
             f'<a class="bt" href="apresentacao.html#d{d}">Abrir a apresentação</a></span></li>')
     leitor = '' if not dados else """
-<div class="leitor" id="leitor" hidden><video id="video" controls playsinline preload="metadata"></video></div>
-<div class="agora" id="agora" hidden><b id="titulo"></b><span><button class="bt" id="ant">◀ Anterior</button> <button class="bt" id="seg">Seguinte ▶</button></span></div>"""
+<section class="palco" id="palco" hidden>
+<div class="leitor"><video id="video" controls playsinline preload="metadata"></video></div>
+<div class="agora"><b id="titulo"></b><span><button class="bt" id="ant">◀ Anterior</button> <button class="bt" id="seg">Seguinte ▶</button></span></div>
+</section>"""
     script = '' if not dados else """
 <script>
 const P = [%s];
@@ -106,22 +142,23 @@ let atual = -1;
 function abrir(i, tocar) {
   if (i < 0 || i >= P.length) return;
   atual = i;
-  document.getElementById('leitor').hidden = false;
-  document.getElementById('agora').hidden = false;
+  document.getElementById('palco').hidden = false;
   v.src = 'videos/parte_' + P[i].n + '.mp4';
   document.getElementById('titulo').textContent = P[i].t;
   document.getElementById('ant').disabled = i === 0;
   document.getElementById('seg').disabled = i === P.length - 1;
   document.querySelectorAll('.parte').forEach(el => el.classList.toggle('sel', el.id === 'parte-' + P[i].n));
   try { history.replaceState(null, '', '#parte-' + P[i].n); } catch (e) {}
-  if (tocar) { v.play().catch(() => {}); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+  if (tocar) { v.play().catch(() => {}); if (!matchMedia('(orientation:landscape) and (min-width:700px)').matches) window.scrollTo({ top: 0, behavior: 'smooth' }); }
 }
 document.querySelectorAll('[data-parte]').forEach(b => b.addEventListener('click', () => abrir(P.findIndex(p => p.n === b.dataset.parte), true)));
 document.getElementById('ant').onclick = () => abrir(atual - 1, true);
 document.getElementById('seg').onclick = () => abrir(atual + 1, true);
 v.addEventListener('ended', () => { if (atual < P.length - 1) abrir(atual + 1, false); });
 const m = /^#parte-(\\d\\d)$/.exec(location.hash);
-if (m) { const i = P.findIndex(p => p.n === m[1]); if (i >= 0) abrir(i, false); else document.getElementById('parte-' + m[1])?.scrollIntoView(); }
+let ini = 0;
+if (m) { const i = P.findIndex(p => p.n === m[1]); if (i >= 0) ini = i; else document.getElementById('parte-' + m[1])?.scrollIntoView(); }
+abrir(ini, false);   // abre já um vídeo (sem tocar), para a área do vídeo não ficar vazia
 </script>""" % ','.join(dados)
     return f"""<!doctype html>
 <html lang="pt-PT">
@@ -134,12 +171,14 @@ if (m) { const i = P.findIndex(p => p.n === m[1]); if (i >= 0) abrir(i, false); 
 </head>
 <body>
 <main>
-<h1>Isometrias</h1>
-<p class="sub">Matemática · 8.º ano · escolhe a parte que queres ver</p>
+<div class="cabeca"><h1>Isometrias</h1>
+<p class="sub">Matemática · 8.º ano · escolhe a parte que queres ver</p></div>
+<div class="grelha{'' if dados else ' sem-video'}">
 {leitor}
 <ul class="partes">
 {chr(10).join(linhas)}
 </ul>
+</div>
 <footer>Prof. Miguel Teibão · 2026/27</footer>
 </main>
 {script}
@@ -197,8 +236,15 @@ def botoes_apresentacao(vid):
 .sv-bt[hidden] { display:none !important; }
 .sv-curto { display:none; }
 @media (max-width:560px) { .sv-bt { font-size:13px; padding:7px 11px; } .sv-longo { display:none; } .sv-curto { display:inline; } }
-@media print { .sv-bar { display:none; } }
+.sv-rodar { display:none; }
+@media (orientation:portrait) and (max-width:600px) {
+  .sv-rodar:not([hidden]) { display:flex; position:fixed; left:50%%; bottom:76px; transform:translateX(-50%%); z-index:2147483000; align-items:center; gap:10px;
+    font:600 14px/1.2 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; color:#fff; background:rgba(25,65,120,.95); border-radius:999px; padding:9px 8px 9px 16px; box-shadow:0 2px 10px rgba(0,0,0,.25); white-space:nowrap; }
+  .sv-rodar button { font:inherit; color:#fff; background:rgba(255,255,255,.2); border:0; border-radius:50%%; width:26px; height:26px; cursor:pointer; }
+}
+@media print { .sv-bar, .sv-rodar { display:none; } }
 </style>
+<div class="sv-rodar" id="sv-rodar">↻ Roda o telemóvel para veres maior <button type="button" aria-label="Fechar">×</button></div>
 <div class="sv-bar"><a class="sv-bt sv-claro" href="index.html">☰ <span class="sv-longo">Todos os temas</span><span class="sv-curto">Temas</span></a><a class="sv-bt" id="sv-video" hidden></a></div>
 <script>
 (function () {
@@ -217,6 +263,9 @@ def botoes_apresentacao(vid):
     if (p && VID[p]) { b.href = 'index.html#parte-' + p; b.innerHTML = '▶ <span class="sv-longo">Vídeo deste tema</span><span class="sv-curto">Vídeo</span> · ' + VID[p]; b.hidden = false; }
     else b.hidden = true;
   }
+  const rd = document.getElementById('sv-rodar');
+  rd.querySelector('button').addEventListener('click', e => { e.stopPropagation(); rd.hidden = true; });
+  ['pointerdown', 'mousedown', 'click'].forEach(ev => rd.addEventListener(ev, e => e.stopPropagation()));
   document.querySelectorAll('.sv-bt').forEach(a => ['pointerdown', 'mousedown', 'click', 'keydown'].forEach(ev =>
     a.addEventListener(ev, e => e.stopPropagation())));
   setInterval(ver, 300); ver();
