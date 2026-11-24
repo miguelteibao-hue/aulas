@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Aulas de Matemática</title>
+<style>
+:root { --fundo:#f6f7fb; --cartao:#fff; --texto:#1d2433; --suave:#5b6478; --linha:#dfe3ec; --acento:#2457c5; --acento2:#e8eefb; }
+@media (prefers-color-scheme: dark) { :root { --fundo:#12151c; --cartao:#1b2029; --texto:#e8ebf2; --suave:#9aa3b5; --linha:#2c3340; --acento:#7ea4f5; --acento2:#1f2a40; } }
+* { box-sizing:border-box; }
+[hidden] { display:none !important; }
+body { margin:0; background:var(--fundo); color:var(--texto); font:17px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+main { max-width:760px; margin:0 auto; padding:20px 16px 48px; }
+h1 { font-size:1.6rem; margin:.2rem 0 .1rem; }
+.sub { color:var(--suave); margin:0 0 1.2rem; }
+.leitor { background:#000; border-radius:12px; overflow:hidden; margin:0 0 .6rem; }
+.leitor video { display:block; width:100%; aspect-ratio:16/9; background:#000; }
+.agora { display:flex; gap:8px; align-items:center; justify-content:space-between; flex-wrap:wrap; margin:0 0 1.4rem; }
+.agora b { font-size:1.05rem; }
+.partes { list-style:none; margin:0; padding:0; display:grid; gap:10px; }
+.parte { background:var(--cartao); border:1px solid var(--linha); border-radius:12px; padding:12px 14px; display:flex; gap:12px; align-items:center; }
+.parte.sel { border-color:var(--acento); box-shadow:0 0 0 2px var(--acento2); }
+.num { flex:none; width:2.2rem; height:2.2rem; border-radius:50%; background:var(--acento2); color:var(--acento); display:grid; place-items:center; font-weight:700; }
+.txt { flex:1; min-width:0; }
+.txt small { color:var(--suave); display:block; }
+.acoes { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+.bt { border:1px solid var(--acento); color:var(--acento); background:transparent; border-radius:999px; padding:7px 13px; font:inherit; font-size:.92rem; text-decoration:none; cursor:pointer; white-space:nowrap; }
+.bt.cheio { background:var(--acento); color:#fff; }
+.bt[disabled] { opacity:.4; cursor:default; }
+footer { color:var(--suave); font-size:.9rem; margin-top:2rem; }
+@media (max-width:560px) { .parte { flex-wrap:wrap; } .acoes { width:100%; justify-content:flex-start; padding-left:3.2rem; } }
+</style>
+</head>
+<body>
+<main>
+<h1>Aulas de Matemática</h1>
+<p class="sub">Prof. Miguel Teibão · 2026/27</p>
+<ul class="partes">
+<li class="parte"><span class="num">8.º</span><span class="txt">Isometrias<small>Vídeos e apresentação, por partes</small></span>
+<span class="acoes"><a class="bt cheio" href="8/isometrias/">Abrir</a></span></li>
+</ul>
+</main>
+</body>
+</html>
