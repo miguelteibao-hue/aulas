@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Estatística · 10.º ano</title>
+<style>
+:root { --fundo:#f6f7fb; --cartao:#fff; --texto:#1d2433; --suave:#5b6478; --linha:#dfe3ec; --acento:#2457c5; --acento2:#e8eefb; }
+@media (prefers-color-scheme: dark) { :root { --fundo:#12151c; --cartao:#1b2029; --texto:#e8ebf2; --suave:#9aa3b5; --linha:#2c3340; --acento:#7ea4f5; --acento2:#1f2a40; } }
+* { box-sizing:border-box; }
+[hidden] { display:none !important; }
+body { margin:0; background:var(--fundo); color:var(--texto); font:17px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+main { max-width:760px; margin:0 auto; padding:20px 16px 48px; }
+h1 { font-size:1.6rem; margin:.2rem 0 .1rem; }
+.sub { color:var(--suave); margin:0 0 1.2rem; }
+.leitor { background:#000; border-radius:12px; overflow:hidden; margin:0 0 .6rem; }
+.leitor video { display:block; width:100%; aspect-ratio:16/9; background:#000; }
+.agora { display:flex; gap:8px; align-items:center; justify-content:space-between; flex-wrap:wrap; margin:0 0 1.4rem; }
+.agora b { font-size:1.05rem; }
+.partes { list-style:none; margin:0; padding:0; display:grid; gap:10px; }
+.parte { background:var(--cartao); border:1px solid var(--linha); border-radius:12px; padding:12px 14px; display:flex; gap:12px; align-items:center; }
+.parte.sel { border-color:var(--acento); box-shadow:0 0 0 2px var(--acento2); }
+.num { flex:none; width:2.2rem; height:2.2rem; border-radius:50%; background:var(--acento2); color:var(--acento); display:grid; place-items:center; font-weight:700; }
+.txt { flex:1; min-width:0; }
+.txt small { color:var(--suave); display:block; }
+.acoes { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+.bt { border:1px solid var(--acento); color:var(--acento); background:transparent; border-radius:999px; padding:7px 13px; font:inherit; font-size:.92rem; text-decoration:none; cursor:pointer; white-space:nowrap; }
+.bt.cheio { background:var(--acento); color:#fff; }
+.bt[disabled] { opacity:.4; cursor:default; }
+footer { color:var(--suave); font-size:.9rem; margin-top:2rem; }
+@media (max-width:560px) { .parte { flex-wrap:wrap; } .acoes { width:100%; justify-content:flex-start; padding-left:3.2rem; } }
+/* Pergunta «vertical ou horizontal» e leitor vertical em ecrã inteiro */
+.escolha { position:fixed; inset:0; z-index:50; background:rgba(10,14,22,.55); display:grid; place-items:center; padding:16px; }
+.esc-caixa { background:var(--cartao); color:var(--texto); border-radius:16px; padding:20px 18px 16px; width:min(360px,100%); display:grid; gap:10px; text-align:center; box-shadow:0 10px 40px rgba(0,0,0,.3); }
+.esc-caixa b { font-size:1.15rem; }
+.esc-caixa small { color:var(--suave); }
+.esc-ops { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:6px 0 4px; }
+.esc-op { display:grid; justify-items:center; gap:8px; padding:16px 8px 12px; border:2px solid var(--acento); border-radius:14px; background:var(--acento2); color:var(--acento); font:inherit; font-weight:700; cursor:pointer; }
+.esc-op svg { height:64px; width:64px; fill:none; stroke:currentColor; stroke-width:3.5; stroke-linecap:round; }
+.telav { position:fixed; inset:0; z-index:40; background:#000; display:flex; flex-direction:column; }
+.telav video { flex:1; min-height:0; width:100%; object-fit:contain; background:#000; }
+.telav-barra { display:flex; align-items:center; gap:8px; padding:8px 10px calc(8px + env(safe-area-inset-bottom)); background:#000; color:#fff; }
+.telav-barra b { flex:1; font-size:.9rem; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.telav-barra .bt { padding:6px 12px; }
+body.com-telav { overflow:hidden; }
+/* Vertical (telemóvel): o vídeo fica preso no topo enquanto se percorre a lista */
+.palco:not([hidden]) { position:sticky; top:0; z-index:5; background:var(--fundo); padding-top:8px; }
+.palco .agora { margin:0 0 .8rem; }
+/* Horizontal (telemóvel deitado e computador): vídeo à esquerda, capítulos à direita */
+@media (orientation:landscape) and (min-width:700px) {
+  main { max-width:1500px; }
+  .grelha { display:grid; grid-template-columns:minmax(0,1fr) minmax(300px,380px); gap:20px; align-items:start; }
+  .palco:not([hidden]) { position:sticky; top:12px; padding-top:0; }
+  .leitor video { max-height:calc(100vh - 150px); }
+  .partes { max-height:calc(100vh - 40px); overflow-y:auto; padding:2px 4px 2px 2px; position:sticky; top:12px; }
+  .parte { flex-wrap:wrap; }
+  .acoes { width:100%; justify-content:flex-start; padding-left:3.2rem; }
+  .grelha.sem-video { display:block; }
+}
+/* Telemóvel deitado (pouca altura): tudo mais compacto para o vídeo caber */
+@media (orientation:landscape) and (max-height:520px) {
+  body { font-size:15px; }
+  main { padding:8px 12px 16px; }
+  h1 { font-size:1.15rem; display:inline; margin-right:.5rem; }
+  .sub { display:inline; font-size:.85rem; }
+  .cabeca { margin-bottom:6px; }
+  .leitor { border-radius:8px; margin-bottom:.3rem; }
+  .leitor video { max-height:calc(100vh - 70px); }
+  .palco .agora { margin:0; }
+  .agora b { font-size:.9rem; }
+  .bt { padding:5px 10px; font-size:.85rem; }
+  .grelha { grid-template-columns:minmax(0,1fr) 260px; gap:12px; }
+  .partes { max-height:calc(100vh - 16px); top:8px; gap:6px; }
+  .acoes { padding-left:0; }
+  .parte { padding:8px 10px; gap:8px; }
+  .num { width:1.8rem; height:1.8rem; font-size:.85rem; }
+  .acoes { padding-left:2.6rem; }
+  footer { display:none; }
+}
+
+.logo { display:inline-block; background:#fff; border-radius:10px; padding:6px 10px; margin:0 0 10px; }
+.logo img { display:block; height:52px; width:auto; }
+.ancora { position:absolute; margin-top:-24px; }   /* fora do fluxo: não empurra o número */
+.parte:has(> .ancora:target) { border-color:var(--acento); box-shadow:0 0 0 2px var(--acento2); }
+</style>
+</head>
+<body>
+<main>
+<div class="cabeca"><span class="logo"><img src="logo_davinci.jpg" alt="Ginásios da Educação Da Vinci"></span><h1>Estatística</h1>
+<p class="sub">Matemática A · 10.º ano · escolhe a parte que queres ver<span class="en">Mathematics A · Year 10 · choose the part you want to see</span></p><button type="button" class="bt bt-en" id="bt-en" aria-pressed="false">PT + EN</button></div>
+<div class="grelha sem-video">
+
+<ul class="partes">
+<li class="parte" id="parte-01"><span class="num">1</span><span class="txt">Introdução à Estatística<small>Capítulo 1 · temas 1 a 4</small><span class="en">Introduction to Statistics · Chapter 1</span></span><span class="acoes"><button class="bt" disabled>▶ Vídeo — em breve</button><a class="bt" href="apresentacao.html#parte-1">Abrir a apresentação</a></span></li>
+<li class="parte" id="parte-02"><span class="num">2</span><span class="txt">Dados univariados<small>Capítulo 2 · temas 5 a 9</small><span class="en">Univariate data · Chapter 2</span></span><span class="acoes"><button class="bt" disabled>▶ Vídeo — em breve</button><a class="bt" href="apresentacao.html#parte-2">Abrir a apresentação</a></span></li>
+<li class="parte" id="parte-03"><span class="num">3</span><span class="txt">Medidas estatísticas<small>Capítulo 3 · temas 10 a 14</small><span class="en">Statistical measures · Chapter 3</span></span><span class="acoes"><button class="bt" disabled>▶ Vídeo — em breve</button><a class="bt" href="apresentacao.html#parte-3">Abrir a apresentação</a></span></li>
+<li class="parte" id="parte-04"><span class="num">4</span><span class="txt">Dados bivariados<small>Capítulo 4 · temas 15 e 16</small><span class="en">Bivariate data · Chapter 4</span></span><span class="acoes"><button class="bt" disabled>▶ Vídeo — em breve</button><a class="bt" href="apresentacao.html#parte-4">Abrir a apresentação</a></span></li>
+<li class="parte" id="parte-05"><span class="num">5</span><span class="txt">Exercícios finais<small>Escolha múltipla (1 a 24) e questões tipo exame (71 a 79)</small><span class="en">Final exercises · multiple choice and exam-style questions</span></span><span class="acoes"><button class="bt" disabled>▶ Vídeo — em breve</button><a class="bt" href="apresentacao.html#parte-5">Abrir a apresentação</a></span></li>
+<li class="parte" id="parte-06"><span class="ancora" id="teste"></span><span class="num">6</span><span class="txt">Teste final: resolução<small>Grupo I e Grupo II, passo a passo</small><span class="en">Final test: solutions · step by step</span></span><span class="acoes"><button class="bt" disabled>▶ Vídeo — em breve</button><a class="bt" href="apresentacao.html#teste">Abrir a apresentação</a></span></li>
+</ul>
+</div>
+<footer>Ginásios da Educação Da Vinci · Explicações · 2026/27</footer>
+</main>
+<style>.en{display:none}body.lingua-en .en{display:block;font-style:italic;color:#5b6b7f;font-size:.86em;margin-top:2px}
+.bt-en{margin-top:10px}body.lingua-en .bt-en{background:#0A687E;color:#fff;border-color:#0A687E}</style>
+<script>(function(){var b=document.getElementById('bt-en');function por(on){document.body.classList.toggle('lingua-en',on);
+b.setAttribute('aria-pressed',on?'true':'false');try{localStorage.setItem('estat-en',on?'1':'0')}catch(e){}}
+var on=false;try{on=localStorage.getItem('estat-en')==='1'}catch(e){}por(on);b.addEventListener('click',function(){por(!document.body.classList.contains('lingua-en'))});})();</script>
+</body>
+</html>

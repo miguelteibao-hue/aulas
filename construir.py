@@ -2,9 +2,12 @@
 """Site das aulas do Prof. Miguel Teibão (GitHub Pages, conta miguelteibao-hue, repositório «aulas").
 
 Chapéu de PROFESSOR (AE D. Maria II), NÃO Da Vinci: nada de marca, domínio ou logótipo da Da Vinci aqui.
+⚠ EXCEÇÃO (decisão do Miguel, 24/11/2026): /10/estatistica/ leva o logótipo Da Vinci — é a ficha das explicações
+Da Vinci. SÓ essas páginas; o resto do site continua sem marca. O endereço /10/estatistica/ é o do QR da ficha e não muda
+nunca (quando os recursos passarem para o painel, redireciona).
 Endereço: https://miguelteibao-hue.github.io/aulas/
 
-Por agora só o 8.º ano, Isometrias (/8/isometrias/):
+8.º ano, Isometrias (/8/isometrias/):
   - apresentacao.html = cópia de «apresentacao/publicar/iexplicacao_8/index.html» (a mesma do /8 do projetor);
   - videos/parte_NN.mp4 = os filmes com voz de «apresentacao/locucao/filmes/» (um por guião NN);
   - index.html = página de entrada GERADA aqui: uma linha por parte, com «Ver o vídeo» (só se o ficheiro existir)
@@ -15,7 +18,18 @@ Por agora só o 8.º ano, Isometrias (/8/isometrias/):
     ~/Davinci/CODE/.venv/bin/python3 construir.py --video 04 <ficheiro.mp4>   (põe o vídeo da parte 04)
     ~/Davinci/CODE/.venv/bin/python3 construir.py --video-vertical 04 <ficheiro.mp4>   (versão vertical: no telemóvel
         a página pergunta «Vertical / Horizontal» antes de tocar; no computador toca sempre o horizontal)
+10.º ano, Estatística (/10/estatistica/, Explicações Da Vinci):
+  - apresentacao.html + img/ = cópia de «SECUNDÁRIO/10º Ano/6 Estatística/apresentacao/publicar/site/» (gerada pelo
+    construir.py dessa pasta);
+  - index.html = uma linha por parte (01–04 capítulos, 05 exercícios finais, 06 teste final), com «▶ Vídeo — em breve»
+    enquanto não houver vídeo e a âncora #teste (resolução do teste: é para lá que o QR leva quem quer as soluções).
+    A apresentação aceita #parte-N e #teste (convertidos em #dN ao arrancar).
+
+    ~/Davinci/CODE/.venv/bin/python3 construir.py --copiar-10     (copia antes a apresentação do 10.º, as imagens e o logótipo)
+    ~/Davinci/CODE/.venv/bin/python3 construir.py --video-10 03 <ficheiro.mp4>   (vídeo da parte 03 do 10.º)
+
 Depois: git add -A && git commit && git push (o GitHub Pages publica em ~1 min).
+Espaço: o GitHub Pages aceita até 1 GB por site; o .git tinha 478 MB a 24/11/2026 (vídeos do 8.º).
 Vídeos: só depois do OK do Miguel a cada um; máx. 100 MB por ficheiro (limite do GitHub).
 """
 import html
@@ -26,6 +40,10 @@ import sys
 AQUI = os.path.dirname(os.path.abspath(__file__))
 ISO = os.path.join(AQUI, '8', 'isometrias')
 APRES_8 = os.path.expanduser('~/Documents/AULAS/3º Ciclo/8º Ano/Isometrias 2026-27/apresentacao/publicar/iexplicacao_8/index.html')
+EST = os.path.join(AQUI, '10', 'estatistica')
+DIR_10 = os.path.expanduser('~/Documents/AULAS/SECUNDÁRIO/10º Ano/6 Estatística')
+APRES_10 = os.path.join(DIR_10, 'apresentacao', 'publicar', 'site')   # index.html + img/
+LOGO_10 = os.path.join(DIR_10, 'logo_davinci.jpg')
 
 # NN do guião → (título, diapositivo onde começa na apresentação, 1 = capa)
 PARTES_ISO = [
@@ -40,6 +58,16 @@ PARTES_ISO = [
     ('11', 'Revisão: que isometria foi?', 'Tema 11', 74),
     ('12', 'Resumo: o que conserva cada isometria', 'Tema 12', 77),
     ('13', 'Exercícios finais', 'Escolha múltipla e resposta aberta', 79),
+]
+
+# 10.º Estatística: NN → (título, o que tem, link na apresentação, número no círculo, âncora extra)
+PARTES_EST = [
+    ('01', 'Introdução à Estatística', 'Capítulo 1 · temas 1 a 4', 'apresentacao.html#parte-1', '1', ''),
+    ('02', 'Dados univariados', 'Capítulo 2 · temas 5 a 9', 'apresentacao.html#parte-2', '2', ''),
+    ('03', 'Medidas estatísticas', 'Capítulo 3 · temas 10 a 14', 'apresentacao.html#parte-3', '3', ''),
+    ('04', 'Dados bivariados', 'Capítulo 4 · temas 15 e 16', 'apresentacao.html#parte-4', '4', ''),
+    ('05', 'Exercícios finais', 'Escolha múltipla (1 a 24) e questões tipo exame (71 a 79)', 'apresentacao.html#parte-5', '5', ''),
+    ('06', 'Teste final: resolução', 'Grupo I e Grupo II, passo a passo', 'apresentacao.html#teste', '6', 'teste'),
 ]
 
 CSS = """
@@ -131,21 +159,36 @@ def duracao(caminho):
     return f'{s // 60} min {s % 60:02d} s' if s >= 60 else f'{s} s'
 
 
-def pagina_iso():
+# PT/EN (só nas páginas com c['en']): o inglês aparece por baixo, em itálico; a escolha fica guardada na mesma chave
+# da apresentação do 10.º («estat-en»), por isso a apresentação abre já com o inglês ligado.
+BOTAO_EN = '<button type="button" class="bt bt-en" id="bt-en" aria-pressed="false">PT + EN</button>'
+SCRIPT_EN = """<style>.en{display:none}body.lingua-en .en{display:block;font-style:italic;color:#5b6b7f;font-size:.86em;margin-top:2px}
+.bt-en{margin-top:10px}body.lingua-en .bt-en{background:#0A687E;color:#fff;border-color:#0A687E}</style>
+<script>(function(){var b=document.getElementById('bt-en');function por(on){document.body.classList.toggle('lingua-en',on);
+b.setAttribute('aria-pressed',on?'true':'false');try{localStorage.setItem('estat-en',on?'1':'0')}catch(e){}}
+var on=false;try{on=localStorage.getItem('estat-en')==='1'}catch(e){}por(on);b.addEventListener('click',function(){por(!document.body.classList.contains('lingua-en'))});})();</script>"""
+
+
+def pagina_temas(c):
+    """Página de entrada de um tema: uma linha por parte, com o vídeo (se existir) e o link para a apresentação.
+    c = {dir, partes: [(nn, título, o que tem, link, número, âncora)], title, h1, sub, rodape, logo?, css?, em_breve?}"""
     linhas, dados = [], []
-    for nn, titulo, quais, d in PARTES_ISO:
-        mp4 = os.path.join(ISO, 'videos', f'parte_{nn}.mp4')
+    for nn, titulo, quais, href, num, ancora in c['partes']:
+        mp4 = os.path.join(c['dir'], 'videos', f'parte_{nn}.mp4')
         tem_video = os.path.exists(mp4)
         dur = duracao(mp4) if tem_video else ''
         if tem_video:
-            tem_v = os.path.exists(os.path.join(ISO, 'videos', f'parte_{nn}_v.mp4'))
+            tem_v = os.path.exists(os.path.join(c['dir'], 'videos', f'parte_{nn}_v.mp4'))
             dados.append('{n:"%s",t:"%s",v:%s}' % (nn, esc(f'{titulo} · {dur}'), 'true' if tem_v else 'false'))
-        bot_video = (f'<button class="bt cheio" data-parte="{nn}">▶ Ver o vídeo · {dur}</button>' if tem_video else '')
+        bot_video = (f'<button class="bt cheio" data-parte="{nn}">▶ Ver o vídeo · {dur}</button>' if tem_video else
+                     ('<button class="bt" disabled>▶ Vídeo — em breve</button>' if c.get('em_breve') else ''))
         linhas.append(
-            f'<li class="parte" id="parte-{nn}"><span class="num">{int(nn) if nn != "01" else "1–3"}</span>'
-            f'<span class="txt">{esc(titulo)}<small>{esc(quais)}</small></span>'
+            f'<li class="parte" id="parte-{nn}">' + (f'<span class="ancora" id="{ancora}"></span>' if ancora else '') +
+            f'<span class="num">{esc(num)}</span>'
+            f'<span class="txt">{esc(titulo)}<small>{esc(quais)}</small>'
+            + (f'<span class="en">{esc(c["en"][nn][0])} · {esc(c["en"][nn][1])}</span>' if c.get('en') and nn in c['en'] else '') + '</span>'
             f'<span class="acoes">{bot_video}'
-            f'<a class="bt" href="apresentacao.html#d{d}">Abrir a apresentação</a></span></li>')
+            f'<a class="bt" href="{href}">Abrir a apresentação</a></span></li>')
     leitor = '' if not dados else """
 <section class="palco" id="palco" hidden>
 <div class="leitor"><video id="video" controls playsinline preload="metadata"></video></div>
@@ -226,25 +269,52 @@ abrir(ini, false);   // abre já um vídeo (sem tocar), para a área do vídeo n
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Isometrias · 8.º ano</title>
-<style>{CSS}</style>
+<title>{esc(c['title'])}</title>
+<style>{CSS}{c.get('css', '')}</style>
 </head>
 <body>
 <main>
-<div class="cabeca"><h1>Isometrias</h1>
-<p class="sub">Matemática · 8.º ano · escolhe a parte que queres ver</p></div>
+<div class="cabeca">{c.get('logo', '')}<h1>{esc(c['h1'])}</h1>
+<p class="sub">{esc(c['sub'])}{('<span class="en">' + esc(c['sub_en']) + '</span>') if c.get('sub_en') else ''}</p>{BOTAO_EN if c.get('en') else ''}</div>
 <div class="grelha{'' if dados else ' sem-video'}">
 {leitor}
 <ul class="partes">
 {chr(10).join(linhas)}
 </ul>
 </div>
-<footer>Prof. Miguel Teibão · 2026/27</footer>
+<footer>{esc(c['rodape'])}</footer>
 </main>
-{script}
+{script}{SCRIPT_EN if c.get('en') else ''}
 </body>
 </html>
 """
+
+
+def pagina_iso():
+    return pagina_temas({
+        'dir': ISO, 'title': 'Isometrias · 8.º ano', 'h1': 'Isometrias', 'sub': 'Matemática · 8.º ano · escolhe a parte que queres ver',
+        'rodape': 'Prof. Miguel Teibão · 2026/27',
+        'partes': [(nn, t, q, f'apresentacao.html#d{d}', str(int(nn)) if nn != '01' else '1–3', '') for nn, t, q, d in PARTES_ISO]})
+
+
+CSS_EST = """
+.logo { display:inline-block; background:#fff; border-radius:10px; padding:6px 10px; margin:0 0 10px; }
+.logo img { display:block; height:52px; width:auto; }
+.ancora { position:absolute; margin-top:-24px; }   /* fora do fluxo: não empurra o número */
+.parte:has(> .ancora:target) { border-color:var(--acento); box-shadow:0 0 0 2px var(--acento2); }
+"""
+
+
+def pagina_est():
+    return pagina_temas({
+        'dir': EST, 'title': 'Estatística · 10.º ano', 'h1': 'Estatística', 'sub': 'Matemática A · 10.º ano · escolhe a parte que queres ver',
+        'rodape': 'Ginásios da Educação Da Vinci · Explicações · 2026/27', 'em_breve': True, 'css': CSS_EST,
+        'logo': '<span class="logo"><img src="logo_davinci.jpg" alt="Ginásios da Educação Da Vinci"></span>',
+        'partes': PARTES_EST, 'sub_en': 'Mathematics A · Year 10 · choose the part you want to see',
+        'en': {'01': ('Introduction to Statistics', 'Chapter 1'), '02': ('Univariate data', 'Chapter 2'),
+               '03': ('Statistical measures', 'Chapter 3'), '04': ('Bivariate data', 'Chapter 4'),
+               '05': ('Final exercises', 'multiple choice and exam-style questions'),
+               '06': ('Final test: solutions', 'step by step')}})
 
 
 def pagina_raiz():
@@ -264,6 +334,8 @@ def pagina_raiz():
 <ul class="partes">
 <li class="parte"><span class="num">8.º</span><span class="txt">Isometrias<small>Vídeos e apresentação, por partes</small></span>
 <span class="acoes"><a class="bt cheio" href="8/isometrias/">Abrir</a></span></li>
+<li class="parte"><span class="num">10.º</span><span class="txt">Estatística<small>Apresentação por partes e resolução do teste</small></span>
+<span class="acoes"><a class="bt cheio" href="10/estatistica/">Abrir</a></span></li>
 </ul>
 </main>
 </body>
@@ -284,7 +356,19 @@ def videos_iso():
 INI, FIM = '<!--SITE-VIDEOS-->', '<!--/SITE-VIDEOS-->'
 
 
-def botoes_apresentacao(vid):
+PARTE_ISO_JS = """  function parte(id) {
+    if (/^(em|ra)-/.test(id)) return '13';
+    const m = /^t(\\d+)-/.exec(id || ''); if (!m) return null;
+    const t = +m[1]; return t <= 3 ? '01' : String(t).padStart(2, '0');
+  }"""
+# 10.º: a parte de cada diapositivo é o seu «tema» (1 a 6) → '01' … '06'
+PARTE_EST_JS = """  function parte(id) {
+    const d = ((window.Apresentacao && window.Apresentacao._E.dias) || []).find(x => x.id === id);
+    return d && /^[1-6]$/.test(d.tema) ? '0' + d.tema : null;
+  }"""
+
+
+def botoes_apresentacao(vid, parte_js=PARTE_ISO_JS, longo='Todos os temas', curto='Temas'):
     """Botões por cima da apresentação (SÓ na cópia do site; a do projetor e as gravações ficam como estão):
     à esquerda «Todos os temas» (página de entrada); à direita «▶ Vídeo deste tema · duração», só nos temas com vídeo."""
     import json
@@ -306,16 +390,12 @@ body:not(.vert) #app { top:52px; }
 }
 @media print { .sv-bar { display:none; } }
 </style>
-<div class="sv-bar"><a class="sv-bt sv-claro" href="index.html">☰ <span class="sv-longo">Todos os temas</span><span class="sv-curto">Temas</span></a><a class="sv-bt" id="sv-video" hidden></a></div>
+<div class="sv-bar"><a class="sv-bt sv-claro" href="index.html">☰ <span class="sv-longo">@@LONGO@@</span><span class="sv-curto">@@CURTO@@</span></a><a class="sv-bt" id="sv-video" hidden></a></div>
 <script>
 (function () {
-  const VID = %s;
+  const VID = @@VID@@;
   const b = document.getElementById('sv-video');
-  function parte(id) {
-    if (/^(em|ra)-/.test(id)) return '13';
-    const m = /^t(\\d+)-/.exec(id || ''); if (!m) return null;
-    const t = +m[1]; return t <= 3 ? '01' : String(t).padStart(2, '0');
-  }
+@@PARTE@@
   let ultimo;
   function ver() {
     const E = window.Apresentacao && window.Apresentacao._E; if (!E || !E.dias) return;
@@ -329,17 +409,55 @@ body:not(.vert) #app { top:52px; }
   setInterval(ver, 300); ver();
 })();
 </script>
-""" % json.dumps(vid, ensure_ascii=False) + FIM
+""".replace('@@VID@@', json.dumps(vid, ensure_ascii=False)).replace('@@PARTE@@', parte_js).replace('@@LONGO@@', longo).replace('@@CURTO@@', curto) + FIM
+
+
+def injetar(s, barra):
+    """Põe (ou troca) a barra do site antes do </body>. Idempotente: antes, cada corrida juntava uma linha em branco."""
+    if INI in s:
+        resto = s[s.index(FIM) + len(FIM):]
+        s = s[:s.index(INI)] + (resto[1:] if resto.startswith('\n') else resto)
+    assert s.count('</body>') == 1
+    return s.replace('</body>', barra + '\n</body>')
 
 
 def apresentacao_iso(copiar):
     dest = os.path.join(ISO, 'apresentacao.html')
     s = open(APRES_8 if copiar else dest, encoding='utf-8').read()
-    if INI in s:
-        s = s[:s.index(INI)] + s[s.index(FIM) + len(FIM):]
-    assert s.count('</body>') == 1
-    s = s.replace('</body>', botoes_apresentacao(videos_iso()) + '\n</body>')
-    open(dest, 'w', encoding='utf-8').write(s)
+    open(dest, 'w', encoding='utf-8').write(injetar(s, botoes_apresentacao(videos_iso())))
+
+
+def videos_est():
+    out = {}
+    for nn, *_ in PARTES_EST:
+        mp4 = os.path.join(EST, 'videos', f'parte_{nn}.mp4')
+        if os.path.exists(mp4):
+            out[nn] = duracao(mp4)
+    return out
+
+
+def apresentacao_est(copiar):
+    dest = os.path.join(EST, 'apresentacao.html')
+    if copiar:
+        # Sincroniza (copia só o que mudou, apaga o que já não existe na origem). Apagar e voltar a copiar tudo
+        # fazia o iCloud (a pasta Documentos está sincronizada) criar cópias «nome 3.webp» — 143 a 24/11/2026.
+        img_o, img_d = os.path.join(APRES_10, 'img'), os.path.join(EST, 'img')
+        os.makedirs(img_d, exist_ok=True)
+        origem = set(os.listdir(img_o))
+        for f in os.listdir(img_d):
+            if f not in origem:
+                os.remove(os.path.join(img_d, f))
+        for f in origem:
+            o, d = os.path.join(img_o, f), os.path.join(img_d, f)
+            if not os.path.exists(d) or open(o, 'rb').read() != open(d, 'rb').read():
+                shutil.copyfile(o, d)
+        if not os.path.exists(os.path.join(EST, 'logo_davinci.jpg')):
+            shutil.copyfile(LOGO_10, os.path.join(EST, 'logo_davinci.jpg'))
+    if not os.path.exists(dest) and not copiar:
+        return False
+    s = open(os.path.join(APRES_10, 'index.html') if copiar else dest, encoding='utf-8').read()
+    open(dest, 'w', encoding='utf-8').write(injetar(s, botoes_apresentacao(videos_est(), PARTE_EST_JS, 'Todas as partes', 'Partes')))
+    return True
 
 
 def main(args):
@@ -362,9 +480,21 @@ def main(args):
         assert mb < 95, f'{mb:.0f} MB: o GitHub recusa ficheiros com mais de 100 MB'
         shutil.copyfile(origem, os.path.join(ISO, 'videos', f'parte_{nn}_v.mp4'))
         print(f'Vídeo VERTICAL da parte {nn} posto ({mb:.1f} MB).')
+    if '--video-10' in args:
+        i = args.index('--video-10')
+        nn, origem = args[i + 1], args[i + 2]
+        assert nn in [p[0] for p in PARTES_EST], f'parte desconhecida: {nn}'
+        mb = os.path.getsize(origem) / 1e6
+        assert mb < 95, f'{mb:.0f} MB: o GitHub recusa ficheiros com mais de 100 MB'
+        os.makedirs(os.path.join(EST, 'videos'), exist_ok=True)
+        shutil.copyfile(origem, os.path.join(EST, 'videos', f'parte_{nn}.mp4'))
+        print(f'Vídeo da parte {nn} do 10.º posto ({mb:.1f} MB).')
     apresentacao_iso('--copiar' in args)
     with open(os.path.join(ISO, 'index.html'), 'w', encoding='utf-8') as f:
         f.write(pagina_iso())
+    if apresentacao_est('--copiar-10' in args):
+        with open(os.path.join(EST, 'index.html'), 'w', encoding='utf-8') as f:
+            f.write(pagina_est())
     with open(os.path.join(AQUI, 'index.html'), 'w', encoding='utf-8') as f:
         f.write(pagina_raiz())
     print('Páginas de entrada refeitas.')
