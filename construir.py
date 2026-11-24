@@ -296,15 +296,9 @@ def botoes_apresentacao(vid):
 .sv-bt[hidden] { display:none !important; }
 .sv-curto { display:none; }
 @media (max-width:560px) { .sv-bt { font-size:13px; padding:7px 11px; } .sv-longo { display:none; } .sv-curto { display:inline; } }
-.sv-rodar { display:none; }
-@media (orientation:portrait) and (max-width:600px) {
-  .sv-rodar:not([hidden]) { display:flex; position:fixed; left:50%%; bottom:76px; transform:translateX(-50%%); z-index:2147483000; align-items:center; gap:10px;
-    font:600 14px/1.2 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; color:#fff; background:rgba(25,65,120,.95); border-radius:999px; padding:9px 8px 9px 16px; box-shadow:0 2px 10px rgba(0,0,0,.25); white-space:nowrap; }
-  .sv-rodar button { font:inherit; color:#fff; background:rgba(255,255,255,.2); border:0; border-radius:50%%; width:26px; height:26px; cursor:pointer; }
-}
-@media print { .sv-bar, .sv-rodar { display:none; } }
+body.vert #palco { --topo-vert: 130px; } /* apresentação na vertical (telemóvel em pé): o cabeçalho desce para a .sv-bar não o tapar */
+@media print { .sv-bar { display:none; } }
 </style>
-<div class="sv-rodar" id="sv-rodar">↻ Roda o telemóvel para veres maior <button type="button" aria-label="Fechar">×</button></div>
 <div class="sv-bar"><a class="sv-bt sv-claro" href="index.html">☰ <span class="sv-longo">Todos os temas</span><span class="sv-curto">Temas</span></a><a class="sv-bt" id="sv-video" hidden></a></div>
 <script>
 (function () {
@@ -323,9 +317,6 @@ def botoes_apresentacao(vid):
     if (p && VID[p]) { b.href = 'index.html#parte-' + p; b.innerHTML = '▶ <span class="sv-longo">Vídeo deste tema</span><span class="sv-curto">Vídeo</span> · ' + VID[p]; b.hidden = false; }
     else b.hidden = true;
   }
-  const rd = document.getElementById('sv-rodar');
-  rd.querySelector('button').addEventListener('click', e => { e.stopPropagation(); rd.hidden = true; });
-  ['pointerdown', 'mousedown', 'click'].forEach(ev => rd.addEventListener(ev, e => e.stopPropagation()));
   document.querySelectorAll('.sv-bt').forEach(a => ['pointerdown', 'mousedown', 'click', 'keydown'].forEach(ev =>
     a.addEventListener(ev, e => e.stopPropagation())));
   setInterval(ver, 300); ver();
