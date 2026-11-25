@@ -88,7 +88,7 @@ body.com-telav { overflow:hidden; }
 <body>
 <main>
 <div class="cabeca"><span class="logo"><img src="logo_davinci.jpg" alt="Ginásios da Educação Da Vinci"></span><h1>Estatística</h1>
-<p class="sub">Matemática A · 10.º ano · escolhe a parte que queres ver<span class="en">Mathematics A · Year 10 · choose the part you want to see</span></p><button type="button" class="bt bt-en" id="bt-en" aria-pressed="false">PT + EN</button></div>
+<p class="sub">Matemática A · 10.º ano · escolhe a parte que queres ver<span class="en">Mathematics A · Year 10 · choose the part you want to see</span></p><button type="button" class="bt bt-en" id="bt-en" aria-pressed="false"><svg class="bandeira" viewBox="0 0 60 30" aria-hidden="true"><clipPath id="bdc"><path d="M0,0v30h60V0z"/></clipPath><clipPath id="bdt"><path d="M30,15h30v15zv15H0zH0V0zV0h30z"/></clipPath><g clip-path="url(#bdc)"><path d="M0,0v30h60V0z" fill="#012169"/><path d="M0,0L60,30M60,0L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0L60,30M60,0L0,30" clip-path="url(#bdt)" stroke="#C8102E" stroke-width="4"/><path d="M30,0v30M0,15h60" stroke="#fff" stroke-width="10"/><path d="M30,0v30M0,15h60" stroke="#C8102E" stroke-width="6"/></g></svg><span id="bt-en-t">English</span></button></div>
 <div class="grelha sem-video">
 
 <ul class="partes">
@@ -103,9 +103,9 @@ body.com-telav { overflow:hidden; }
 <footer>Ginásios da Educação Da Vinci · Explicações · 2026/27</footer>
 </main>
 <style>.en{display:none}body.lingua-en .en{display:block;font-style:italic;color:#5b6b7f;font-size:.86em;margin-top:2px}
-.bt-en{margin-top:10px}body.lingua-en .bt-en{background:#0A687E;color:#fff;border-color:#0A687E}</style>
+.bt-en{margin-top:10px;display:inline-flex;align-items:center;gap:8px}.bandeira{width:30px;height:15px;border-radius:2px;box-shadow:0 0 0 1px rgba(0,0,0,.15)}body.lingua-en .bt-en{background:#0A687E;color:#fff;border-color:#0A687E}</style>
 <script>(function(){var b=document.getElementById('bt-en');function por(on){document.body.classList.toggle('lingua-en',on);
-b.setAttribute('aria-pressed',on?'true':'false');try{localStorage.setItem('estat-en',on?'1':'0')}catch(e){}}
+b.setAttribute('aria-pressed',on?'true':'false');document.getElementById('bt-en-t').textContent=on?'PT + EN':'English';try{localStorage.setItem('estat-en',on?'1':'0')}catch(e){}}
 var on=false;try{on=localStorage.getItem('estat-en')==='1'}catch(e){}por(on);b.addEventListener('click',function(){por(!document.body.classList.contains('lingua-en'))});})();</script>
 </body>
 </html>

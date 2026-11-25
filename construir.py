@@ -161,11 +161,16 @@ def duracao(caminho):
 
 # PT/EN (só nas páginas com c['en']): o inglês aparece por baixo, em itálico; a escolha fica guardada na mesma chave
 # da apresentação do 10.º («estat-en»), por isso a apresentação abre já com o inglês ligado.
-BOTAO_EN = '<button type="button" class="bt bt-en" id="bt-en" aria-pressed="false">PT + EN</button>'
+BANDEIRA_UK = ('<svg class="bandeira" viewBox="0 0 60 30" aria-hidden="true"><clipPath id="bdc"><path d="M0,0v30h60V0z"/></clipPath>'
+               '<clipPath id="bdt"><path d="M30,15h30v15zv15H0zH0V0zV0h30z"/></clipPath><g clip-path="url(#bdc)"><path d="M0,0v30h60V0z" fill="#012169"/>'
+               '<path d="M0,0L60,30M60,0L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0L60,30M60,0L0,30" clip-path="url(#bdt)" stroke="#C8102E" stroke-width="4"/>'
+               '<path d="M30,0v30M0,15h60" stroke="#fff" stroke-width="10"/><path d="M30,0v30M0,15h60" stroke="#C8102E" stroke-width="6"/></g></svg>')
+# bandeirinha (pedido do Miguel, 25/11): «English» liga o inglês; ligado mostra «PT + EN»
+BOTAO_EN = '<button type="button" class="bt bt-en" id="bt-en" aria-pressed="false">' + BANDEIRA_UK + '<span id="bt-en-t">English</span></button>'
 SCRIPT_EN = """<style>.en{display:none}body.lingua-en .en{display:block;font-style:italic;color:#5b6b7f;font-size:.86em;margin-top:2px}
-.bt-en{margin-top:10px}body.lingua-en .bt-en{background:#0A687E;color:#fff;border-color:#0A687E}</style>
+.bt-en{margin-top:10px;display:inline-flex;align-items:center;gap:8px}.bandeira{width:30px;height:15px;border-radius:2px;box-shadow:0 0 0 1px rgba(0,0,0,.15)}body.lingua-en .bt-en{background:#0A687E;color:#fff;border-color:#0A687E}</style>
 <script>(function(){var b=document.getElementById('bt-en');function por(on){document.body.classList.toggle('lingua-en',on);
-b.setAttribute('aria-pressed',on?'true':'false');try{localStorage.setItem('estat-en',on?'1':'0')}catch(e){}}
+b.setAttribute('aria-pressed',on?'true':'false');document.getElementById('bt-en-t').textContent=on?'PT + EN':'English';try{localStorage.setItem('estat-en',on?'1':'0')}catch(e){}}
 var on=false;try{on=localStorage.getItem('estat-en')==='1'}catch(e){}por(on);b.addEventListener('click',function(){por(!document.body.classList.contains('lingua-en'))});})();</script>"""
 
 
