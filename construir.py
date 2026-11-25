@@ -292,7 +292,7 @@ abrir(ini, false);   // abre já um vídeo (sem tocar), para a área do vídeo n
 {chr(10).join(linhas)}
 </ul>
 </div>
-<footer>{esc(c['rodape'])}</footer>
+{c.get('extra', '')}<footer>{esc(c['rodape'])}</footer>
 </main>
 {script}{SCRIPT_EN if c.get('en') else ''}
 </body>
@@ -312,11 +312,83 @@ CSS_EST = """
 .logo img { display:block; height:52px; width:auto; }
 .ancora { position:absolute; margin-top:-24px; }   /* fora do fluxo: não empurra o número */
 .parte:has(> .ancora:target) { border-color:var(--acento); box-shadow:0 0 0 2px var(--acento2); }
+.bloco { margin:28px 0 0; }
+.bloco h2 { font-size:1.25rem; margin:0 0 6px; }
+.bloco .nota { margin:0 0 10px; color:var(--suave); font-size:.95rem; }
+.tab-rola { overflow-x:auto; }
+table.perc { border-collapse:collapse; width:100%; font-size:.92rem; background:var(--cartao); border-radius:10px; overflow:hidden; }
+table.perc th { background:#0A687E; color:#fff; text-align:left; padding:7px 10px; }
+table.perc td { border-bottom:1px solid var(--linha); padding:6px 10px; vertical-align:top; }
+table.perc td small { color:var(--suave); white-space:nowrap; }
+table.perc tr.cap td { background:var(--acento2); color:var(--acento); font-weight:700; }
+table.perc tr.tot td { font-weight:700; border-top:2px solid var(--acento); }
+.mats { list-style:none; padding:0; margin:0; display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:12px; }
+.mat { display:flex; flex-direction:column; gap:2px; padding:14px 16px; border:2px solid var(--acento); border-radius:12px; background:var(--cartao); color:var(--acento); text-decoration:none; }
+.mat small { color:var(--suave); }
 """
 
 
+# [#2059, 25/11/2026] percursos breve/aprofundado (percursos.json da pasta da ficha) e materiais em PDF.
+# Só as versões do ALUNO (as do professor têm as soluções e não vão para o site). Copiados para 10/estatistica/pdf/.
+PERCURSOS_10 = os.path.join(DIR_10, 'percursos.json')
+MATERIAIS_10 = [
+    ('2026-11-25_Revisoes_Essencial_Estatistica_10ano_DaVinci_ALUNO.pdf', 'Revisões do essencial', 'Essential review', '1 página por capítulo'),
+    ('2026-11-25_Sinteses_Estatistica_10ano_DaVinci.pdf', 'Sínteses', 'Summaries', 'uma por capítulo e a final'),
+    ('2026-11-25_Teste_A_Estatistica_10ano_DaVinci_ALUNO.pdf', 'Teste A', 'Test A', 'mais acessível · 90 min'),
+    ('2026-11-25_Teste_B_Estatistica_10ano_DaVinci_ALUNO.pdf', 'Teste B', 'Test B', 'mais exigente · 90 min'),
+]
+CAP_EN_10 = ['Introduction to Statistics', 'Univariate data', 'Statistical measures', 'Bivariate data']
+
+
+def hm(m):
+    return (f'{m // 60} h' + (f' {m % 60:02d}' if m % 60 else '')) if m >= 60 else f'{m} min'
+
+
+def lista_ex(ns):
+    out, i = [], 0
+    while i < len(ns):
+        j = i
+        while j + 1 < len(ns) and ns[j + 1] == ns[j] + 1:
+            j += 1
+        out.append(f'{ns[i]}–{ns[j]}' if j - i >= 2 else ', '.join(map(str, ns[i:j + 1])))
+        i = j + 1
+    return ', '.join(out)
+
+
+def extra_est():
+    import json
+    h = ''
+    if os.path.exists(PERCURSOS_10):
+        pc = json.load(open(PERCURSOS_10, encoding='utf-8'))
+        linhas = []
+        for c in pc['capitulos']:
+            linhas.append(f'<tr class="cap"><td>Capítulo {c["numero"]} · {esc(c["nome"])}<span class="en">Chapter {c["numero"]} · {CAP_EN_10[c["numero"] - 1]}</span></td>'
+                          f'<td>≈ {hm(c["breve_minutos"])}</td><td>≈ {hm(c["aprofundado_minutos"])}</td></tr>')
+            for tm in c['temas']:
+                linhas.append(f'<tr><td>{tm["numero"]}. {esc(tm["nome"])}</td>'
+                              f'<td>ex. {lista_ex(tm["breve"]["exercicios"])} <small>{tm["breve"]["minutos"]} min</small></td>'
+                              f'<td>ex. {lista_ex(tm["aprofundado"]["exercicios"])} <small>{tm["aprofundado"]["minutos"]} min</small></td></tr>')
+        f = pc['finais']
+        linhas.append(f'<tr class="cap"><td>Exercícios finais<span class="en">Final exercises</span></td><td>≈ {hm(f["breve"]["minutos"])}</td><td>≈ {hm(f["aprofundado"]["minutos"])}</td></tr>')
+        linhas.append(f'<tr><td>Escolha múltipla e tipo exame</td><td>EM {lista_ex(f["breve"]["em"])}; ex. {lista_ex(f["breve"]["tipo_exame"])}</td>'
+                      f'<td>EM {lista_ex(f["aprofundado"]["em"])}; ex. {lista_ex(f["aprofundado"]["tipo_exame"])}</td></tr>')
+        linhas.append(f'<tr class="cap"><td>Teste final<span class="en">Final test</span></td><td colspan="2">{hm(pc["teste_final"]["minutos"])}</td></tr>')
+        linhas.append(f'<tr class="tot"><td>Total (sem o teste)</td><td>{pc["total"]["texto_breve"]}</td><td>{pc["total"]["texto_aprofundado"]}</td></tr>')
+        h += ('<section class="bloco" id="percursos"><h2>Percursos: breve ou aprofundado<span class="en">Learning paths: short or in depth</span></h2>'
+              '<p class="nota">O <b>breve</b> faz um exercício por tema, para quem tem pouco tempo; o <b>aprofundado</b> faz todos. '
+              'Os números são os dos exercícios da ficha; os tempos incluem ler a teoria e o exemplo.</p>'
+              '<div class="tab-rola"><table class="perc"><thead><tr><th>Tema</th><th>Breve</th><th>Aprofundado</th></tr></thead><tbody>'
+              + ''.join(linhas) + '</tbody></table></div></section>')
+    mats = [m for m in MATERIAIS_10 if os.path.exists(os.path.join(EST, 'pdf', m[0]))]
+    if mats:
+        h += ('<section class="bloco" id="materiais"><h2>Para estudar e treinar<span class="en">Study and practice</span></h2><ul class="mats">'
+              + ''.join(f'<li><a class="mat" href="pdf/{f}" target="_blank" rel="noopener"><b>{esc(pt)}</b><small>{esc(nota)} · PDF</small>'
+                        f'<span class="en">{esc(en)}</span></a></li>' for f, pt, en, nota in mats) + '</ul></section>')
+    return h
+
+
 def pagina_est():
-    return pagina_temas({
+    return pagina_temas({'extra': extra_est(),
         'dir': EST, 'title': 'Estatística · 10.º ano', 'h1': 'Estatística', 'sub': 'Matemática A · 10.º ano · escolhe a parte que queres ver',
         'rodape': 'Ginásios da Educação Da Vinci · Explicações · 2026/27', 'em_breve': True, 'css': CSS_EST,
         'logo': '<span class="logo"><img src="logo_davinci.jpg" alt="Ginásios da Educação Da Vinci"></span>',
@@ -460,6 +532,12 @@ def apresentacao_est(copiar):
         for f in origem:
             o, d = os.path.join(img_o, f), os.path.join(img_d, f)
             if not os.path.exists(d) or open(o, 'rb').read() != open(d, 'rb').read():
+                shutil.copyfile(o, d)
+        # PDFs do aluno (#2059): copia só o que mudou
+        os.makedirs(os.path.join(EST, 'pdf'), exist_ok=True)
+        for f, *_ in MATERIAIS_10:
+            o, d = os.path.join(DIR_10, f), os.path.join(EST, 'pdf', f)
+            if os.path.exists(o) and (not os.path.exists(d) or open(o, 'rb').read() != open(d, 'rb').read()):
                 shutil.copyfile(o, d)
         if not os.path.exists(os.path.join(EST, 'logo_davinci.jpg')):
             shutil.copyfile(LOGO_10, os.path.join(EST, 'logo_davinci.jpg'))
