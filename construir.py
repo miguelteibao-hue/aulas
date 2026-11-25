@@ -27,6 +27,11 @@ Endereço: https://miguelteibao-hue.github.io/aulas/
 
     ~/Davinci/CODE/.venv/bin/python3 construir.py --copiar-10     (copia antes a apresentação do 10.º, as imagens e o logótipo)
     ~/Davinci/CODE/.venv/bin/python3 construir.py --video-10 03 <ficheiro.mp4>   (vídeo da parte 03 do 10.º)
+  ESTRUTURA NOVA (25/11/2026): um vídeo de teoria por tema e um por exercício, abertos no botão «Ver em vídeo» da
+  apresentação. Ficam em 10/estatistica/videos/Estatistica_10ano_<nome>.mp4 (+ _v.mp4, o vertical). O Miguel escolheu
+  o site das aulas para eles a 25/11. Um de cada vez, com o OK dele:
+    ~/Davinci/CODE/.venv/bin/python3 construir.py --video-10-novo t01_teoria   (copia o horizontal e o vertical de
+        «apresentacao/locucao/filmes*/»); depois construir.py da APRESENTAÇÃO (liga os botões) e aqui --copiar-10.
 
 Depois: git add -A && git commit && git push (o GitHub Pages publica em ~1 min).
 Espaço: o GitHub Pages aceita até 1 GB por site; o .git tinha 478 MB a 24/11/2026 (vídeos do 8.º).
@@ -494,6 +499,20 @@ def main(args):
         os.makedirs(os.path.join(EST, 'videos'), exist_ok=True)
         shutil.copyfile(origem, os.path.join(EST, 'videos', f'parte_{nn}.mp4'))
         print(f'Vídeo da parte {nn} do 10.º posto ({mb:.1f} MB).')
+    if '--video-10-novo' in args:
+        i = args.index('--video-10-novo')
+        nome = args[i + 1]
+        loc = os.path.join(DIR_10, 'apresentacao', 'locucao')
+        os.makedirs(os.path.join(EST, 'videos'), exist_ok=True)
+        for pasta, suf in (('filmes', ''), ('filmes_vertical', '_v')):
+            origem = os.path.join(loc, pasta, f'Estatistica_10ano_{nome}.mp4')
+            assert os.path.exists(origem) or suf, f'não existe: {origem}'
+            if not os.path.exists(origem):
+                continue
+            mb = os.path.getsize(origem) / 1e6
+            assert mb < 95, f'{mb:.0f} MB: o GitHub recusa ficheiros com mais de 100 MB'
+            shutil.copyfile(origem, os.path.join(EST, 'videos', f'Estatistica_10ano_{nome}{suf}.mp4'))
+            print(f'Vídeo {nome}{suf} do 10.º posto ({mb:.1f} MB).')
     apresentacao_iso('--copiar' in args)
     with open(os.path.join(ISO, 'index.html'), 'w', encoding='utf-8') as f:
         f.write(pagina_iso())
