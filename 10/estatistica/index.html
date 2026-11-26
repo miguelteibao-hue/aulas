@@ -28,6 +28,7 @@ h1 { font-size:1.6rem; margin:.2rem 0 .1rem; }
 .bt { border:1px solid var(--acento); color:var(--acento); background:transparent; border-radius:999px; padding:7px 13px; font:inherit; font-size:.92rem; text-decoration:none; cursor:pointer; white-space:nowrap; }
 .bt.cheio { background:var(--acento); color:#fff; }
 .bt[disabled] { opacity:.4; cursor:default; }
+.bt.cheio.no-leitor { box-shadow:0 0 0 3px rgba(0,0,0,.18) inset; }
 footer { color:var(--suave); font-size:.9rem; margin-top:2rem; }
 @media (max-width:560px) { .parte { flex-wrap:wrap; } .acoes { width:100%; justify-content:flex-start; padding-left:3.2rem; } }
 /* Pergunta «vertical ou horizontal» e leitor vertical em ecrã inteiro */
@@ -102,10 +103,29 @@ table.perc tr.tot td { font-weight:700; border-top:2px solid var(--acento); }
 <main>
 <div class="cabeca"><span class="logo"><img src="logo_davinci.jpg" alt="Ginásios da Educação Da Vinci"></span><h1>Estatística</h1>
 <p class="sub">Matemática A · 10.º ano · escolhe a parte que queres ver<span class="en">Mathematics A · Year 10 · choose the part you want to see</span></p><button type="button" class="bt bt-en" id="bt-en" aria-pressed="false"><svg class="bandeira" viewBox="0 0 60 30" aria-hidden="true"><clipPath id="bdc"><path d="M0,0v30h60V0z"/></clipPath><clipPath id="bdt"><path d="M30,15h30v15zv15H0zH0V0zV0h30z"/></clipPath><g clip-path="url(#bdc)"><path d="M0,0v30h60V0z" fill="#012169"/><path d="M0,0L60,30M60,0L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0L60,30M60,0L0,30" clip-path="url(#bdt)" stroke="#C8102E" stroke-width="4"/><path d="M30,0v30M0,15h60" stroke="#fff" stroke-width="10"/><path d="M30,0v30M0,15h60" stroke="#C8102E" stroke-width="6"/></g></svg><span id="bt-en-t">English</span></button></div>
-<div class="grelha sem-video">
+<div class="grelha">
 
+<section class="palco" id="palco" hidden>
+<div class="leitor"><video id="video" controls playsinline preload="metadata"></video></div>
+<div class="agora"><b id="titulo"></b><span><button class="bt" id="ant">◀ Anterior</button> <button class="bt" id="seg">Seguinte ▶</button></span></div>
+</section>
+<div class="escolha" id="escolha" hidden role="dialog" aria-modal="true" aria-labelledby="esc-tit">
+ <div class="esc-caixa">
+  <b id="esc-tit">Como queres ver o vídeo?</b>
+  <small id="esc-parte"></small>
+  <div class="esc-ops">
+   <button type="button" class="esc-op" data-modo="v"><svg viewBox="0 0 40 64" aria-hidden="true"><rect x="3" y="2" width="34" height="60" rx="6"/><line x1="15" y1="55" x2="25" y2="55"/></svg>Vertical</button>
+   <button type="button" class="esc-op" data-modo="h"><svg viewBox="0 0 64 40" aria-hidden="true"><rect x="2" y="3" width="60" height="34" rx="6"/><line x1="55" y1="15" x2="55" y2="25"/></svg>Horizontal</button>
+  </div>
+  <button type="button" class="bt" id="esc-nao">Cancelar</button>
+ </div>
+</div>
+<div class="telav" id="telav" hidden>
+ <video id="videov" controls playsinline preload="metadata"></video>
+ <div class="telav-barra"><button type="button" class="bt cheio" id="antv">◀</button><b id="titulov"></b><button type="button" class="bt cheio" id="segv">▶</button><button type="button" class="bt cheio" id="fecharv" aria-label="Fechar">✕</button></div>
+</div>
 <ul class="partes">
-<li class="parte" id="parte-01"><span class="num">1</span><span class="txt">Introdução à Estatística<small>Capítulo 1 · temas 1 a 4</small><span class="en">Introduction to Statistics · Chapter 1</span></span><span class="acoes"><button class="bt" disabled>▶ Vídeo — em breve</button><a class="bt" href="apresentacao.html#parte-1">Abrir a apresentação</a></span></li>
+<li class="parte" id="parte-01"><span class="num">1</span><span class="txt">Introdução à Estatística<small>Capítulo 1 · temas 1 a 4</small><span class="en">Introduction to Statistics · Chapter 1</span></span><span class="acoes"><button class="bt cheio" data-parte="t1">▶ Tema 1 · 2 min 24 s</button><button class="bt cheio" data-parte="ex1">▶ Ex. 1 · 51 s</button><button class="bt cheio" data-parte="t2">▶ Tema 2 · 1 min 19 s</button><a class="bt" href="apresentacao.html#parte-1">Abrir a apresentação</a></span></li>
 <li class="parte" id="parte-02"><span class="num">2</span><span class="txt">Dados univariados<small>Capítulo 2 · temas 5 a 9</small><span class="en">Univariate data · Chapter 2</span></span><span class="acoes"><button class="bt" disabled>▶ Vídeo — em breve</button><a class="bt" href="apresentacao.html#parte-2">Abrir a apresentação</a></span></li>
 <li class="parte" id="parte-03"><span class="num">3</span><span class="txt">Medidas estatísticas<small>Capítulo 3 · temas 10 a 14</small><span class="en">Statistical measures · Chapter 3</span></span><span class="acoes"><button class="bt" disabled>▶ Vídeo — em breve</button><a class="bt" href="apresentacao.html#parte-3">Abrir a apresentação</a></span></li>
 <li class="parte" id="parte-04"><span class="num">4</span><span class="txt">Dados bivariados<small>Capítulo 4 · temas 15 e 16</small><span class="en">Bivariate data · Chapter 4</span></span><span class="acoes"><button class="bt" disabled>▶ Vídeo — em breve</button><a class="bt" href="apresentacao.html#parte-4">Abrir a apresentação</a></span></li>
@@ -115,7 +135,64 @@ table.perc tr.tot td { font-weight:700; border-top:2px solid var(--acento); }
 </div>
 <section class="bloco" id="percursos"><h2>Percursos: breve ou aprofundado<span class="en">Learning paths: short or in depth</span></h2><p class="nota">O <b>breve</b> faz um exercício por tema, para quem tem pouco tempo; o <b>aprofundado</b> faz todos. Os números são os dos exercícios da ficha; os tempos incluem ler a teoria e o exemplo.</p><div class="tab-rola"><table class="perc"><thead><tr><th>Tema</th><th>Breve</th><th>Aprofundado</th></tr></thead><tbody><tr class="cap"><td>Capítulo 1 · Introdução à Estatística<span class="en">Chapter 1 · Introduction to Statistics</span></td><td>≈ 45 min</td><td>≈ 1 h 15</td></tr><tr><td>1. O procedimento estatístico</td><td>ex. 1 <small>10 min</small></td><td>ex. 1 <small>10 min</small></td></tr><tr><td>2. Censo e sondagem</td><td>ex. 2 <small>10 min</small></td><td>ex. 2, 3 <small>15 min</small></td></tr><tr><td>3. Amostragem</td><td>ex. 5 <small>15 min</small></td><td>ex. 4–9 <small>35 min</small></td></tr><tr><td>4. Variáveis estatísticas</td><td>ex. 10 <small>10 min</small></td><td>ex. 10, 11 <small>15 min</small></td></tr><tr class="cap"><td>Capítulo 2 · Dados univariados<span class="en">Chapter 2 · Univariate data</span></td><td>≈ 1 h 40</td><td>≈ 2 h 40</td></tr><tr><td>5. Tabelas de frequências</td><td>ex. 12 <small>20 min</small></td><td>ex. 12, 13 <small>25 min</small></td></tr><tr><td>6. Representações gráficas</td><td>ex. 14 <small>15 min</small></td><td>ex. 14–16 <small>30 min</small></td></tr><tr><td>7. Diagrama de caule-e-folhas</td><td>ex. 17 <small>15 min</small></td><td>ex. 17, 18 <small>25 min</small></td></tr><tr><td>8. Dados agrupados em classes. Histograma</td><td>ex. 19 <small>25 min</small></td><td>ex. 19, 20 <small>30 min</small></td></tr><tr><td>9. Função cumulativa</td><td>ex. 25 <small>25 min</small></td><td>ex. 21–25 <small>50 min</small></td></tr><tr class="cap"><td>Capítulo 3 · Medidas estatísticas<span class="en">Chapter 3 · Statistical measures</span></td><td>≈ 1 h 45</td><td>≈ 4 h 40</td></tr><tr><td>10. Média</td><td>ex. 31 <small>15 min</small></td><td>ex. 26–33 <small>45 min</small></td></tr><tr><td>11. Moda e mediana</td><td>ex. 39 <small>20 min</small></td><td>ex. 34–42 <small>50 min</small></td></tr><tr><td>12. Quartis e percentis</td><td>ex. 43, 48 <small>45 min</small></td><td>ex. 43–53 <small>100 min</small></td></tr><tr><td>13. Medidas de dispersão</td><td>ex. 58 <small>15 min</small></td><td>ex. 54–62 <small>60 min</small></td></tr><tr><td>14. Propriedades da média e do desvio-padrão</td><td>ex. 66 <small>10 min</small></td><td>ex. 63–67 <small>25 min</small></td></tr><tr class="cap"><td>Capítulo 4 · Dados bivariados<span class="en">Chapter 4 · Bivariate data</span></td><td>≈ 35 min</td><td>≈ 40 min</td></tr><tr><td>15. Diagrama de dispersão e coeficiente de correlação</td><td>ex. 68 <small>10 min</small></td><td>ex. 68, 69 <small>15 min</small></td></tr><tr><td>16. Reta de regressão</td><td>ex. 70 <small>25 min</small></td><td>ex. 70 <small>25 min</small></td></tr><tr class="cap"><td>Exercícios finais<span class="en">Final exercises</span></td><td>≈ 30 min</td><td>≈ 2 h 15</td></tr><tr><td>Escolha múltipla e tipo exame</td><td>EM 4, 7, 11, 12, 15, 19, 20, 24; ex. 75</td><td>EM 1–24; ex. 71–79</td></tr><tr class="cap"><td>Teste final<span class="en">Final test</span></td><td colspan="2">1 h 30</td></tr><tr class="tot"><td>Total (sem o teste)</td><td>≈ 5 h 15</td><td>≈ 11 h 30</td></tr></tbody></table></div></section><section class="bloco" id="materiais"><h2>Para estudar e treinar<span class="en">Study and practice</span></h2><ul class="mats"><li><a class="mat" href="pdf/2026-11-25_Revisoes_Essencial_Estatistica_10ano_DaVinci_ALUNO.pdf" target="_blank" rel="noopener"><b>Revisões do essencial</b><small>1 página por capítulo · PDF</small><span class="en">Essential review</span></a></li><li><a class="mat" href="pdf/2026-11-25_Sinteses_Estatistica_10ano_DaVinci.pdf" target="_blank" rel="noopener"><b>Sínteses</b><small>uma por capítulo e a final · PDF</small><span class="en">Summaries</span></a></li><li><a class="mat" href="pdf/2026-11-25_Teste_A_Estatistica_10ano_DaVinci_ALUNO.pdf" target="_blank" rel="noopener"><b>Teste A</b><small>mais acessível · 90 min · PDF</small><span class="en">Test A</span></a></li><li><a class="mat" href="pdf/2026-11-25_Teste_B_Estatistica_10ano_DaVinci_ALUNO.pdf" target="_blank" rel="noopener"><b>Teste B</b><small>mais exigente · 90 min · PDF</small><span class="en">Test B</span></a></li></ul></section><footer>Ginásios da Educação Da Vinci · Explicações · 2026/27</footer>
 </main>
-<style>.en{display:none}body.lingua-en .en{display:block;font-style:italic;color:#5b6b7f;font-size:.86em;margin-top:2px}
+
+<script>
+const P = [{k:"t1",n:"01",f:"Estatistica_10ano_t01_teoria",t:"Tema 1 · O procedimento estatístico (teoria) · 2 min 24 s",v:true},{k:"ex1",n:"01",f:"Estatistica_10ano_ex01",t:"Exercício 1 · O procedimento estatístico · 51 s",v:true},{k:"t2",n:"01",f:"Estatistica_10ano_t02_teoria",t:"Tema 2 · Censo e sondagem (teoria) · 1 min 19 s",v:true}];
+const v = document.getElementById('video');
+let atual = -1;
+/* realça a parte e o botão do vídeo que está no leitor; o endereço fica com #parte-NN */
+function marcar(i) {
+  document.querySelectorAll('.parte').forEach(el => el.classList.toggle('sel', el.id === 'parte-' + P[i].n));
+  document.querySelectorAll('[data-parte]').forEach(b => b.classList.toggle('no-leitor', b.dataset.parte === P[i].k));
+  try { history.replaceState(null, '', '#parte-' + P[i].n); } catch (e) {}
+}
+function abrir(i, tocar) {
+  if (i < 0 || i >= P.length) return;
+  atual = i;
+  document.getElementById('palco').hidden = false;
+  v.src = 'videos/' + P[i].f + '.mp4';
+  document.getElementById('titulo').textContent = P[i].t;
+  document.getElementById('ant').disabled = i === 0;
+  document.getElementById('seg').disabled = i === P.length - 1;
+  marcar(i);
+  if (tocar) { v.play().catch(() => {}); if (!matchMedia('(orientation:landscape) and (min-width:700px)').matches) window.scrollTo({ top: 0, behavior: 'smooth' }); }
+}
+/* Vídeo vertical: no telemóvel, se a parte tiver versão vertical, pergunta antes de tocar; no computador é sempre horizontal */
+const vv = document.getElementById('videov'), telav = document.getElementById('telav'), esc = document.getElementById('escolha');
+let atualV = -1, pedido = -1;
+function telemovel() { return matchMedia('(pointer:coarse)').matches && Math.min(screen.width, screen.height) < 600; }
+function vizV(i, d) { for (let k = i + d; k >= 0 && k < P.length; k += d) if (P[k].v) return k; return -1; }
+function abrirV(i, tocar) {
+  atualV = i; telav.hidden = false; document.body.classList.add('com-telav');
+  v.pause(); vv.src = 'videos/' + P[i].f + '_v.mp4';
+  document.getElementById('titulov').textContent = P[i].t;
+  document.getElementById('antv').disabled = vizV(i, -1) < 0;
+  document.getElementById('segv').disabled = vizV(i, 1) < 0;
+  marcar(i);
+  if (tocar) vv.play().catch(() => {});
+}
+function fecharV() { vv.pause(); telav.hidden = true; document.body.classList.remove('com-telav'); if (atualV >= 0) abrir(atualV, false); }
+document.getElementById('antv').onclick = () => { const k = vizV(atualV, -1); if (k >= 0) abrirV(k, true); };
+document.getElementById('segv').onclick = () => { const k = vizV(atualV, 1); if (k >= 0) abrirV(k, true); };
+document.getElementById('fecharv').onclick = fecharV;
+vv.addEventListener('ended', () => { const k = vizV(atualV, 1); if (k >= 0) abrirV(k, false); });
+function pedir(i) {
+  if (i < 0) return;
+  if (P[i].v && telemovel()) { pedido = i; document.getElementById('esc-parte').textContent = P[i].t; esc.hidden = false; }
+  else abrir(i, true);
+}
+esc.querySelectorAll('.esc-op').forEach(b => b.addEventListener('click', () => { esc.hidden = true; if (b.dataset.modo === 'v') abrirV(pedido, true); else abrir(pedido, true); }));
+document.getElementById('esc-nao').onclick = () => { esc.hidden = true; };
+esc.addEventListener('click', e => { if (e.target === esc) esc.hidden = true; });
+document.querySelectorAll('[data-parte]').forEach(b => b.addEventListener('click', () => pedir(P.findIndex(p => p.k === b.dataset.parte))));
+document.getElementById('ant').onclick = () => abrir(atual - 1, true);
+document.getElementById('seg').onclick = () => abrir(atual + 1, true);
+v.addEventListener('ended', () => { if (atual < P.length - 1) abrir(atual + 1, false); });
+const m = /^#parte-(\d\d)$/.exec(location.hash);
+let ini = 0;
+if (m) { const i = P.findIndex(p => p.n === m[1]); if (i >= 0) ini = i; else document.getElementById('parte-' + m[1])?.scrollIntoView(); }
+abrir(ini, false);   // abre já um vídeo (sem tocar), para a área do vídeo não ficar vazia
+</script><style>.en{display:none}body.lingua-en .en{display:block;font-style:italic;color:#5b6b7f;font-size:.86em;margin-top:2px}
 .bt-en{margin-top:10px;display:inline-flex;align-items:center;gap:8px}.bandeira{width:30px;height:15px;border-radius:2px;box-shadow:0 0 0 1px rgba(0,0,0,.15)}body.lingua-en .bt-en{background:#0A687E;color:#fff;border-color:#0A687E}</style>
 <script>(function(){var b=document.getElementById('bt-en');function por(on){document.body.classList.toggle('lingua-en',on);
 b.setAttribute('aria-pressed',on?'true':'false');document.getElementById('bt-en-t').textContent=on?'PT + EN':'English';try{localStorage.setItem('estat-en',on?'1':'0')}catch(e){}}

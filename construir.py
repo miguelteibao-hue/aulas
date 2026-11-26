@@ -21,8 +21,9 @@ Endereço: https://miguelteibao-hue.github.io/aulas/
 10.º ano, Estatística (/10/estatistica/, Explicações Da Vinci):
   - apresentacao.html + img/ = cópia de «SECUNDÁRIO/10º Ano/6 Estatística/apresentacao/publicar/site/» (gerada pelo
     construir.py dessa pasta);
-  - index.html = uma linha por parte (01–04 capítulos, 05 exercícios finais, 06 teste final), com «▶ Vídeo — em breve»
-    enquanto não houver vídeo e a âncora #teste (resolução do teste: é para lá que o QR leva quem quer as soluções).
+  - index.html = uma linha por parte (01–04 capítulos, 05 exercícios finais, 06 teste final), com um botão ▶ por vídeo
+    da estrutura nova no capítulo do tema/exercício (desde 26/11: «Tema 1», «Ex. 1», …; videos_est_partes()) e
+    «▶ Vídeo — em breve» enquanto o capítulo não tiver nenhum e a âncora #teste (resolução do teste: é para lá que o QR leva quem quer as soluções).
     A apresentação aceita #parte-N e #teste (convertidos em #dN ao arrancar).
 
     ~/Davinci/CODE/.venv/bin/python3 construir.py --copiar-10     (copia antes a apresentação do 10.º, as imagens e o logótipo)
@@ -98,6 +99,7 @@ h1 { font-size:1.6rem; margin:.2rem 0 .1rem; }
 .bt { border:1px solid var(--acento); color:var(--acento); background:transparent; border-radius:999px; padding:7px 13px; font:inherit; font-size:.92rem; text-decoration:none; cursor:pointer; white-space:nowrap; }
 .bt.cheio { background:var(--acento); color:#fff; }
 .bt[disabled] { opacity:.4; cursor:default; }
+.bt.cheio.no-leitor { box-shadow:0 0 0 3px rgba(0,0,0,.18) inset; }
 footer { color:var(--suave); font-size:.9rem; margin-top:2rem; }
 @media (max-width:560px) { .parte { flex-wrap:wrap; } .acoes { width:100%; justify-content:flex-start; padding-left:3.2rem; } }
 /* Pergunta «vertical ou horizontal» e leitor vertical em ecrã inteiro */
@@ -181,16 +183,21 @@ var on=false;try{on=localStorage.getItem('estat-en')==='1'}catch(e){}por(on);b.a
 
 def pagina_temas(c):
     """Página de entrada de um tema: uma linha por parte, com o vídeo (se existir) e o link para a apresentação.
-    c = {dir, partes: [(nn, título, o que tem, link, número, âncora)], title, h1, sub, rodape, logo?, css?, em_breve?}"""
+    c = {dir, partes: [(nn, título, o que tem, link, número, âncora)], title, h1, sub, rodape, logo?, css?, em_breve?,
+         videos?}  videos = {nn: [(chave, texto do botão, título no leitor, ficheiro sem .mp4)]} (10.º: vários por parte);
+         sem «videos», cada parte tem no máximo um, videos/parte_NN.mp4 (8.º)."""
     linhas, dados = [], []
     for nn, titulo, quais, href, num, ancora in c['partes']:
-        mp4 = os.path.join(c['dir'], 'videos', f'parte_{nn}.mp4')
-        tem_video = os.path.exists(mp4)
-        dur = duracao(mp4) if tem_video else ''
-        if tem_video:
-            tem_v = os.path.exists(os.path.join(c['dir'], 'videos', f'parte_{nn}_v.mp4'))
-            dados.append('{n:"%s",t:"%s",v:%s}' % (nn, esc(f'{titulo} · {dur}'), 'true' if tem_v else 'false'))
-        bot_video = (f'<button class="bt cheio" data-parte="{nn}">▶ Ver o vídeo · {dur}</button>' if tem_video else
+        if 'videos' in c:
+            lista = [(k, bt, tt, f, duracao(os.path.join(c['dir'], 'videos', f + '.mp4'))) for k, bt, tt, f in c['videos'].get(nn, [])]
+        elif os.path.exists(os.path.join(c['dir'], 'videos', f'parte_{nn}.mp4')):
+            lista = [(nn, 'Ver o vídeo', titulo, f'parte_{nn}', duracao(os.path.join(c['dir'], 'videos', f'parte_{nn}.mp4')))]
+        else:
+            lista = []
+        for k, bt, tt, f, dur in lista:
+            tem_v = os.path.exists(os.path.join(c['dir'], 'videos', f + '_v.mp4'))
+            dados.append('{k:"%s",n:"%s",f:"%s",t:"%s",v:%s}' % (k, nn, f, esc(f'{tt} · {dur}'), 'true' if tem_v else 'false'))
+        bot_video = (''.join(f'<button class="bt cheio" data-parte="{k}">▶ {esc(bt)} · {dur}</button>' for k, bt, tt, f, dur in lista) if lista else
                      ('<button class="bt" disabled>▶ Vídeo — em breve</button>' if c.get('em_breve') else ''))
         linhas.append(
             f'<li class="parte" id="parte-{nn}">' + (f'<span class="ancora" id="{ancora}"></span>' if ancora else '') +
@@ -224,16 +231,21 @@ def pagina_temas(c):
 const P = [%s];
 const v = document.getElementById('video');
 let atual = -1;
+/* realça a parte e o botão do vídeo que está no leitor; o endereço fica com #parte-NN */
+function marcar(i) {
+  document.querySelectorAll('.parte').forEach(el => el.classList.toggle('sel', el.id === 'parte-' + P[i].n));
+  document.querySelectorAll('[data-parte]').forEach(b => b.classList.toggle('no-leitor', b.dataset.parte === P[i].k));
+  try { history.replaceState(null, '', '#parte-' + P[i].n); } catch (e) {}
+}
 function abrir(i, tocar) {
   if (i < 0 || i >= P.length) return;
   atual = i;
   document.getElementById('palco').hidden = false;
-  v.src = 'videos/parte_' + P[i].n + '.mp4';
+  v.src = 'videos/' + P[i].f + '.mp4';
   document.getElementById('titulo').textContent = P[i].t;
   document.getElementById('ant').disabled = i === 0;
   document.getElementById('seg').disabled = i === P.length - 1;
-  document.querySelectorAll('.parte').forEach(el => el.classList.toggle('sel', el.id === 'parte-' + P[i].n));
-  try { history.replaceState(null, '', '#parte-' + P[i].n); } catch (e) {}
+  marcar(i);
   if (tocar) { v.play().catch(() => {}); if (!matchMedia('(orientation:landscape) and (min-width:700px)').matches) window.scrollTo({ top: 0, behavior: 'smooth' }); }
 }
 /* Vídeo vertical: no telemóvel, se a parte tiver versão vertical, pergunta antes de tocar; no computador é sempre horizontal */
@@ -243,12 +255,11 @@ function telemovel() { return matchMedia('(pointer:coarse)').matches && Math.min
 function vizV(i, d) { for (let k = i + d; k >= 0 && k < P.length; k += d) if (P[k].v) return k; return -1; }
 function abrirV(i, tocar) {
   atualV = i; telav.hidden = false; document.body.classList.add('com-telav');
-  v.pause(); vv.src = 'videos/parte_' + P[i].n + '_v.mp4';
+  v.pause(); vv.src = 'videos/' + P[i].f + '_v.mp4';
   document.getElementById('titulov').textContent = P[i].t;
   document.getElementById('antv').disabled = vizV(i, -1) < 0;
   document.getElementById('segv').disabled = vizV(i, 1) < 0;
-  document.querySelectorAll('.parte').forEach(el => el.classList.toggle('sel', el.id === 'parte-' + P[i].n));
-  try { history.replaceState(null, '', '#parte-' + P[i].n); } catch (e) {}
+  marcar(i);
   if (tocar) vv.play().catch(() => {});
 }
 function fecharV() { vv.pause(); telav.hidden = true; document.body.classList.remove('com-telav'); if (atualV >= 0) abrir(atualV, false); }
@@ -264,7 +275,7 @@ function pedir(i) {
 esc.querySelectorAll('.esc-op').forEach(b => b.addEventListener('click', () => { esc.hidden = true; if (b.dataset.modo === 'v') abrirV(pedido, true); else abrir(pedido, true); }));
 document.getElementById('esc-nao').onclick = () => { esc.hidden = true; };
 esc.addEventListener('click', e => { if (e.target === esc) esc.hidden = true; });
-document.querySelectorAll('[data-parte]').forEach(b => b.addEventListener('click', () => pedir(P.findIndex(p => p.n === b.dataset.parte))));
+document.querySelectorAll('[data-parte]').forEach(b => b.addEventListener('click', () => pedir(P.findIndex(p => p.k === b.dataset.parte))));
 document.getElementById('ant').onclick = () => abrir(atual - 1, true);
 document.getElementById('seg').onclick = () => abrir(atual + 1, true);
 v.addEventListener('ended', () => { if (atual < P.length - 1) abrir(atual + 1, false); });
@@ -387,8 +398,38 @@ def extra_est():
     return h
 
 
+def videos_est_partes():
+    """[26/11] Vídeos da estrutura nova (um de teoria por tema, um por exercício) arrumados no capítulo de cada um,
+    pela ordem da ficha: teoria do tema e logo a seguir os exercícios desse tema. Só os que já estão em videos/."""
+    import json, re
+    pc = json.load(open(PERCURSOS_10, encoding='utf-8'))
+    tema_de_ex, tema = {}, {}
+    for cap in pc['capitulos']:
+        for tm in cap['temas']:
+            tema[tm['numero']] = (cap['numero'], tm['nome'])
+            for e in tm['aprofundado']['exercicios'] + tm['breve']['exercicios']:
+                tema_de_ex[e] = tm['numero']
+    itens = []
+    for f in sorted(os.listdir(os.path.join(EST, 'videos'))) if os.path.isdir(os.path.join(EST, 'videos')) else []:
+        m = re.fullmatch(r'Estatistica_10ano_(t|ex)(\d+)(_teoria)?\.mp4', f)
+        if not m:
+            continue
+        n = int(m.group(2))
+        if m.group(1) == 't':
+            cap, nome = tema[n]
+            itens.append(((n, 0, 0), cap, (f't{n}', f'Tema {n}', f'Tema {n} · {nome} (teoria)', f[:-4])))
+        else:
+            t = tema_de_ex[n]
+            cap, nome = tema[t]
+            itens.append(((t, 1, n), cap, (f'ex{n}', f'Ex. {n}', f'Exercício {n} · {nome}', f[:-4])))
+    out = {}
+    for _, cap, v in sorted(itens):
+        out.setdefault(f'{cap:02d}', []).append(v)
+    return out
+
+
 def pagina_est():
-    return pagina_temas({'extra': extra_est(),
+    return pagina_temas({'extra': extra_est(), 'videos': videos_est_partes(),
         'dir': EST, 'title': 'Estatística · 10.º ano', 'h1': 'Estatística', 'sub': 'Matemática A · 10.º ano · escolhe a parte que queres ver',
         'rodape': 'Ginásios da Educação Da Vinci · Explicações · 2026/27', 'em_breve': True, 'css': CSS_EST,
         'logo': '<span class="logo"><img src="logo_davinci.jpg" alt="Ginásios da Educação Da Vinci"></span>',
