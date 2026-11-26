@@ -3831,7 +3831,7 @@ D(X.base(2, {
       '<li>Dentro de cada classe os dados supõem-se distribuídos de forma uniforme: <b>interpolação linear</b>.<span class="en">Inside each class the data are assumed uniform: linear interpolation.</span></li></ul></div>' +
       P('<span class="exemplo-t">Exemplo.</span> Tempo de espera, em minutos, dos clientes de uma loja do cidadão.', '<b>Example.</b> Waiting time (minutes) at a citizen’s shop.', 'data-cue') +
       '<table class="ts" data-cue="=" style="font-size:24px"><tr><th>Tempo</th><td>\\([0,5[\\)</td><td>\\([5,10[\\)</td><td>\\([10,15[\\)</td><td>\\([15,20[\\)</td></tr>' +
-      '<tr><th>\\(f_i\\) (%)</th><td>20</td><td>35</td><td>30</td><td>15</td></tr><tr><th>\\(F_i\\) (%)</th><td>20</td><td>55</td><td>85</td><td>100</td></tr></table>' +
+      '<tr><th>\\(f_i\\) (%)</th><td>20 %</td><td>35 %</td><td>30 %</td><td>15 %</td></tr><tr><th>\\(F_i\\) (%)</th><td>20 %</td><td>55 %</td><td>85 %</td><td>100 %</td></tr></table>' +
       '<i data-cue="f:cu"></i><i data-cue="f:cu"></i>' +
       P('Menos de 12 minutos? \\(12\\) está na classe \\([10,15[\\), a \\(\\frac{2}{5}\\) do seu início: \\(55\\%+\\frac{2}{5}\\times30\\%=67\\%\\).', 'Less than 12 minutes? 12 is 2/5 of the way into [10, 15[: 55% + 2/5 × 30% = 67%.', 'data-cue') +
       '<i data-cue="f:cu:="></i><i data-cue="f:cu"></i>' +
@@ -4299,7 +4299,7 @@ D(X.base(6, {
     const h = S.Histograma({ lim: [0, 4, 8, 12, 16, 20], v: [15, 30, 25, 20, 10], ymax: 35, ys: [0, 10, 20, 30], xlab: 'min', ylab: '\\(f_i\\) (%)',
       marcas: [{ x: 9.2, nome: '\\(\\bar{x}\\approx9{,}2\\)', anc: 'sw' }, { x: 8.8, nome: '\\(\\tilde{x}\\approx8{,}8\\)', cls: 'med', anc: 'se' }], w: 700, h: 440 });
     x.html('<div class="duas meio" style="grid-template-columns:1fr 700px;gap:24px"><div class="col" style="gap:12px">' +
-      P('As frequências relativas de cada classe saem das acumuladas: \\(15\\), \\(45-15=30\\), \\(70-45=25\\), \\(90-70=20\\) e \\(100-90=10\\) (%). As marcas são \\(2\\), \\(6\\), \\(10\\), \\(14\\) e \\(18\\).', 'Relative frequencies: 15, 30, 25, 20, 10 (%); class marks 2, 6, 10, 14, 18.', 'data-cue') +
+      P('As frequências relativas de cada classe saem das acumuladas: \\(15\\,\\%\\), \\(45-15=30\\,\\%\\), \\(70-45=25\\,\\%\\), \\(90-70=20\\,\\%\\) e \\(100-90=10\\,\\%\\). As marcas são \\(2\\), \\(6\\), \\(10\\), \\(14\\) e \\(18\\).', 'Relative frequencies: 15 %, 30 %, 25 %, 20 %, 10 %; class marks 2, 6, 10, 14, 18.', 'data-cue') +
       '<i data-cue="f:h:="></i>' +
       P('\\(\\bar{x}\\approx0{,}15\\times2+0{,}30\\times6+0{,}25\\times10\\)<br><span style="padding-left:1.6em">\\(+\\,0{,}20\\times14+0{,}10\\times18=9{,}2\\) min</span>', 'Mean ≈ 9.2 min.', 'data-cue') +
       '<i data-cue="f:h:="></i>' +
